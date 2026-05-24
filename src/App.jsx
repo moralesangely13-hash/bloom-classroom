@@ -1,5 +1,87 @@
-import React from 'react'
-function App() {
+import React, { useState } from 'react'
+
+function RoleSelection({ selectedRole, setSelectedRole, onContinue, onBack }) {
+  return (
+    <main className="role-selection-screen">
+      <div className="role-bg-shape role-bg-shape-1" aria-hidden="true" />
+      <div className="role-bg-shape role-bg-shape-2" aria-hidden="true" />
+      <div className="role-bg-shape role-bg-shape-3" aria-hidden="true" />
+
+      <section className="role-shell container">
+        <div className="role-logo" aria-hidden="true">
+          <span className="logo-dot dot-1" />
+          <span className="logo-dot dot-2" />
+          <span className="logo-dot dot-3" />
+          <span className="logo-dot dot-4" />
+        </div>
+        <p className="role-brand">Bloom Classroom</p>
+        <h1 className="role-title">Welcome to your learning space</h1>
+        <p className="role-subtitle">Choose your role to personalize what happens next.</p>
+
+        <div className="role-grid" role="radiogroup" aria-label="Choose your role">
+          <button
+            className={`role-card ${selectedRole === 'teacher' ? 'is-active' : ''}`}
+            type="button"
+            onClick={() => setSelectedRole('teacher')}
+            aria-pressed={selectedRole === 'teacher'}
+          >
+            <span className="role-icon" aria-hidden="true">🧑‍🏫</span>
+            <span className="role-card-title">Teacher</span>
+            <span className="role-card-copy">Manage classrooms, activities, students, and engagement.</span>
+          </button>
+
+          <button
+            className={`role-card ${selectedRole === 'student' ? 'is-active' : ''}`}
+            type="button"
+            onClick={() => setSelectedRole('student')}
+            aria-pressed={selectedRole === 'student'}
+          >
+            <span className="role-icon" aria-hidden="true">🧑‍🎓</span>
+            <span className="role-card-title">Student</span>
+            <span className="role-card-copy">Join classes, track progress, and learn with AI support.</span>
+          </button>
+        </div>
+
+        <div className="role-actions">
+          <button className="btn btn-role-continue" type="button" onClick={onContinue} disabled={!selectedRole}>
+            Continue
+          </button>
+          <button className="btn btn-role-back" type="button" onClick={onBack}>
+            Back to Landing
+          </button>
+        </div>
+      </section>
+    </main>
+  )
+}
+
+function TeacherPlaceholder({ onBack }) {
+  return (
+    <main className="section container" style={{ minHeight: '100vh', display: 'grid', placeItems: 'center' }}>
+      <div style={{ textAlign: 'center' }}>
+        <h1>Teacher Dashboard coming next</h1>
+        <button className="btn btn-primary" type="button" onClick={onBack}>
+          Back to Landing
+        </button>
+      </div>
+    </main>
+  )
+}
+
+function StudentPlaceholder({ onBack }) {
+  return (
+    <main className="section container" style={{ minHeight: '100vh', display: 'grid', placeItems: 'center' }}>
+      <div style={{ textAlign: 'center' }}>
+        <h1>Student Dashboard coming next</h1>
+        <button className="btn btn-primary" type="button" onClick={onBack}>
+          Back to Landing
+        </button>
+      </div>
+    </main>
+  )
+}
+
+function Landing({ onOpenRoleSelection }) {
   return (
     <>
       <header className="site-header">
@@ -12,8 +94,8 @@ function App() {
             <a href="#pricing">Pricing</a>
           </nav>
           <div className="actions">
-            <button className="btn btn-ghost" type="button">Log in</button>
-            <button className="btn btn-primary" type="button">Get started</button>
+            <button className="btn btn-ghost" type="button" onClick={onOpenRoleSelection}>Log In</button>
+            <button className="btn btn-primary" type="button" onClick={onOpenRoleSelection}>Get Started</button>
           </div>
         </div>
       </header>
@@ -27,8 +109,8 @@ function App() {
               Bloom Classroom helps teachers organize lessons, share assignments, and track student growth in one beautifully simple workspace.
             </p>
             <div className="hero-cta">
-              <button className="btn btn-primary" type="button">Start free trial</button>
-              <button className="btn btn-outline" type="button">View demo</button>
+              <button className="btn btn-primary" type="button" onClick={onOpenRoleSelection}>Start free trial</button>
+              <button className="btn btn-outline" type="button" onClick={onOpenRoleSelection}>View demo</button>
             </div>
             <ul className="hero-badges" aria-label="Highlights">
               <li>No credit card required</li>
@@ -107,12 +189,38 @@ function App() {
           <div className="container cta-card">
             <h2>Start your classroom transformation today</h2>
             <p>Join schools creating calmer workflows for teachers and better outcomes for students.</p>
-            <button className="btn btn-primary" type="button">Create your classroom</button>
+            <button className="btn btn-primary" type="button" onClick={onOpenRoleSelection}>Join a Class</button>
           </div>
         </section>
       </main>
     </>
   )
+}
+
+function App() {
+  const [screen, setScreen] = useState('landing')
+  const [selectedRole, setSelectedRole] = useState('')
+
+  if (screen === 'role-selection') {
+    return (
+      <RoleSelection
+        selectedRole={selectedRole}
+        setSelectedRole={setSelectedRole}
+        onContinue={() => setScreen(selectedRole === 'teacher' ? 'teacher-placeholder' : 'student-placeholder')}
+        onBack={() => setScreen('landing')}
+      />
+    )
+  }
+
+  if (screen === 'teacher-placeholder') {
+    return <TeacherPlaceholder onBack={() => setScreen('landing')} />
+  }
+
+  if (screen === 'student-placeholder') {
+    return <StudentPlaceholder onBack={() => setScreen('landing')} />
+  }
+
+  return <Landing onOpenRoleSelection={() => setScreen('role-selection')} />
 }
 
 export default App
