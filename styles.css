@@ -273,3 +273,164 @@ blockquote cite {
     grid-template-columns: 1fr;
   }
 }
+
+.role-selection-screen {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+  background: linear-gradient(135deg, #F9D5E5 0%, #E9D5FF 45%, #DDEBFF 100%);
+  color: #2B2142;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 0;
+}
+
+.role-bg-shape {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(2px);
+  pointer-events: none;
+}
+
+.role-bg-shape-1 {
+  width: 320px;
+  height: 320px;
+  top: -110px;
+  left: -80px;
+  background: radial-gradient(circle, rgba(196, 181, 253, 0.9) 0%, rgba(196, 181, 253, 0.2) 62%, transparent 100%);
+}
+
+.role-bg-shape-2 {
+  width: 250px;
+  height: 250px;
+  right: -60px;
+  top: 18%;
+  background: radial-gradient(circle, rgba(189, 224, 254, 0.9) 0%, rgba(189, 224, 254, 0.2) 60%, transparent 100%);
+}
+
+.role-bg-shape-3 {
+  width: 300px;
+  height: 300px;
+  bottom: -130px;
+  left: 38%;
+  background: radial-gradient(circle, rgba(244, 194, 215, 0.85) 0%, rgba(244, 194, 215, 0.2) 58%, transparent 100%);
+}
+
+.role-shell {
+  position: relative;
+  z-index: 1;
+  background: rgba(255, 249, 251, 0.62);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 28px;
+  box-shadow: 0 20px 54px rgba(75, 50, 128, 0.18);
+  backdrop-filter: blur(14px);
+  padding: clamp(1.25rem, 3vw, 2.3rem);
+}
+
+.role-brand {
+  margin: 0;
+  text-align: center;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: #7D5CD6;
+}
+
+.role-title {
+  text-align: center;
+  margin-top: 0.55rem;
+  margin-bottom: 0.35rem;
+  font-size: clamp(1.8rem, 4.5vw, 2.6rem);
+}
+
+.role-subtitle {
+  margin: 0 auto;
+  text-align: center;
+  color: #7B6D9B;
+  max-width: 62ch;
+  line-height: 1.6;
+}
+
+.role-grid {
+  margin-top: 1.4rem;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.role-card {
+  text-align: left;
+  padding: 1.2rem;
+  border-radius: 20px;
+  border: 1px solid rgba(196, 181, 253, 0.42);
+  background: rgba(255, 249, 251, 0.78);
+  box-shadow: 0 12px 30px rgba(74, 49, 125, 0.12);
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+  color: #2B2142;
+}
+
+.role-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 38px rgba(74, 49, 125, 0.16);
+  border-color: rgba(167, 139, 250, 0.7);
+}
+
+.role-card.is-active {
+  border-color: #A78BFA;
+  box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.25), 0 16px 38px rgba(74, 49, 125, 0.2);
+}
+
+.role-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 14px;
+  font-size: 1.5rem;
+  background: linear-gradient(135deg, #CDEFE8 0%, #BDE0FE 100%);
+}
+
+.role-card-title {
+  display: block;
+  margin-top: 0.85rem;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.role-card-copy {
+  display: block;
+  margin-top: 0.45rem;
+  line-height: 1.55;
+  color: #7B6D9B;
+}
+
+.role-actions {
+  margin-top: 1.25rem;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+}
+
+.btn-role-continue {
+  background: linear-gradient(135deg, #A78BFA 0%, #C4B5FD 45%, #F4C2D7 100%);
+  color: #fff;
+  box-shadow: 0 12px 28px rgba(167, 139, 250, 0.35);
+}
+
+.btn-role-continue:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+  box-shadow: none;
+}
+
+.btn-role-back {
+  background: rgba(255, 249, 251, 0.85);
+  color: #2B2142;
+  border: 1px solid rgba(123, 109, 155, 0.28);
+}
+
+@media (max-width: 900px) {
+  .role-grid {
+    grid-template-columns: 1fr;
+  }
+}
