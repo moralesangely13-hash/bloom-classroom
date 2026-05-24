@@ -182,7 +182,7 @@ function TeacherPlaceholder({ onBack }) {
                 <p><strong>Code:</strong> {classItem.code}</p>
                 <p><strong>Students:</strong> {classItem.students?.length || 0}</p>
                 <div className="teacher-class-actions">
-                  <button className="btn btn-outline" type="button">Open</button>
+                  <button className="btn btn-outline" type="button" onClick={() => window.dispatchEvent(new CustomEvent('open-classroom', { detail: { classItem, from: 'teacher' } }))}>Open</button>
                   <button className="btn btn-outline" type="button" onClick={() => handleEditClass(classItem.id)}>Edit</button>
                   <button className="btn btn-outline" type="button" onClick={() => handleDeleteClass(classItem.id)}>Delete</button>
                   <button className="btn btn-outline" type="button" onClick={() => handleCopyCode(classItem.code)}>Copy Code</button>
@@ -332,12 +332,34 @@ function StudentPlaceholder({ onBack }) {
                 <div className="student-progress-placeholder" aria-hidden="true">
                   <span style={{ width: classItem.progress }} />
                 </div>
-                <button className="btn btn-outline student-open-btn" type="button">Open</button>
+                <button className="btn btn-outline student-open-btn" type="button" onClick={() => window.dispatchEvent(new CustomEvent('open-classroom', { detail: { classItem, from: 'student' } }))}>Open</button>
               </article>
             ))}
             {joinedClasses.length === 0 && <p className="student-empty">Join a class to see it here.</p>}
           </div>
         </section>
+      </section>
+    </main>
+  )
+}
+
+
+function ClassroomPage({ data, onBack }) {
+  const [activeTab, setActiveTab] = useState('Classroom')
+  const tabs = ['Classroom', 'History', 'Chat', 'Calendar', 'Resources', 'Activities', 'AI Tutor']
+
+  return (
+    <main className="classroom-screen">
+      <header className="classroom-header"><div className="container classroom-header-inner"><p className="classroom-logo">Bloom Classroom</p><button className="btn btn-role-back" onClick={onBack} type="button">Back to Dashboard</button></div></header>
+      <section className="container classroom-shell">
+        <p className="classroom-role">{data.from === 'teacher' ? 'Teacher View' : 'Student View'}</p>
+        <h1 className="classroom-title">{data.classItem.name}</h1>
+        <p className="classroom-subject">{data.classItem.subject}</p>
+        <p className="classroom-code">{data.classItem.code}</p>
+        <nav className="classroom-tabs" aria-label="Classroom tabs">
+          {tabs.map((tab) => <button key={tab} type="button" className={`classroom-tab ${activeTab === tab ? 'is-active' : ''}`} onClick={() => setActiveTab(tab)}>{tab}</button>)}
+        </nav>
+        <article className="classroom-content"><h2>{activeTab} coming next</h2></article>
       </section>
     </main>
   )
@@ -462,6 +484,20 @@ function Landing({ onOpenRoleSelection }) {
 function App() {
   const [screen, setScreen] = useState('landing')
   const [selectedRole, setSelectedRole] = useState('')
+  const [activeClassroom, setActiveClassroom] = useState(null)
+
+  useEffect(() => {
+    const handler = (event) => {
+      setActiveClassroom(event.detail)
+      setScreen('classroom')
+    }
+    window.addEventListener('open-classroom', handler)
+    return () => window.removeEventListener('open-classroom', handler)
+  }, [])
+
+  if (screen === 'classroom' && activeClassroom) {
+    return <ClassroomPage data={activeClassroom} onBack={() => setScreen(activeClassroom.from === 'teacher' ? 'teacher-placeholder' : 'student-placeholder')} />
+  }
 
   if (screen === 'role-selection') {
     return (
