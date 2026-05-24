@@ -1,5 +1,484 @@
-import React from 'react'
-function App() {
+import React, { useEffect, useState } from 'react'
+
+const BLOOM_CLASSES_KEY = 'bloomClasses'
+const BLOOM_STUDENT_JOINED_CODES_KEY = 'bloomStudentJoinedClassCodes'
+
+function RoleSelection({ selectedRole, setSelectedRole, onContinue, onBack }) {
+  return (
+    <main className="role-selection-screen">
+      <div className="role-bg-shape role-bg-shape-1" aria-hidden="true" />
+      <div className="role-bg-shape role-bg-shape-2" aria-hidden="true" />
+      <div className="role-bg-shape role-bg-shape-3" aria-hidden="true" />
+
+      <section className="role-shell container">
+        <div className="role-logo" aria-hidden="true">
+          <span className="logo-dot dot-1" />
+          <span className="logo-dot dot-2" />
+          <span className="logo-dot dot-3" />
+          <span className="logo-dot dot-4" />
+        </div>
+        <p className="role-brand">Bloom Classroom</p>
+        <h1 className="role-title">Welcome to your learning space</h1>
+        <p className="role-subtitle">Choose your role to personalize what happens next.</p>
+
+        <div className="role-grid" role="radiogroup" aria-label="Choose your role">
+          <button
+            className={`role-card ${selectedRole === 'teacher' ? 'is-active' : ''}`}
+            type="button"
+            onClick={() => setSelectedRole('teacher')}
+            aria-pressed={selectedRole === 'teacher'}
+          >
+            <span className="role-icon" aria-hidden="true">🧑‍🏫</span>
+            <span className="role-card-title">Teacher</span>
+            <span className="role-card-copy">Manage classrooms, activities, students, and engagement.</span>
+          </button>
+
+          <button
+            className={`role-card ${selectedRole === 'student' ? 'is-active' : ''}`}
+            type="button"
+            onClick={() => setSelectedRole('student')}
+            aria-pressed={selectedRole === 'student'}
+          >
+            <span className="role-icon" aria-hidden="true">🧑‍🎓</span>
+            <span className="role-card-title">Student</span>
+            <span className="role-card-copy">Join classes, track progress, and learn with AI support.</span>
+          </button>
+        </div>
+
+        <div className="role-actions">
+          <button className="btn btn-role-continue" type="button" onClick={onContinue} disabled={!selectedRole}>
+            Continue
+          </button>
+          <button className="btn btn-role-back" type="button" onClick={onBack}>
+            Back to Landing
+          </button>
+        </div>
+      </section>
+    </main>
+  )
+}
+
+function TeacherPlaceholder({ onBack }) {
+  const [className, setClassName] = useState('')
+  const [subject, setSubject] = useState('')
+  const [classes, setClasses] = useState([])
+
+  useEffect(() => {
+    const storedClasses = localStorage.getItem(BLOOM_CLASSES_KEY)
+    if (storedClasses) {
+      setClasses(JSON.parse(storedClasses))
+    }
+  }, [])
+
+  useEffect(() => {
+    localStorage.setItem(BLOOM_CLASSES_KEY, JSON.stringify(classes))
+  }, [classes])
+
+  const generateCode = () => `BLOOM-${Math.floor(1000 + Math.random() * 9000)}`
+
+  const handleCreateClass = (event) => {
+    event.preventDefault()
+    if (!className.trim() || !subject.trim()) return
+
+    const newClass = {
+      id: Date.now(),
+      name: className.trim(),
+      subject: subject.trim(),
+      code: generateCode(),
+      createdAt: new Date().toISOString(),
+      students: [],
+    }
+
+    setClasses((prev) => [newClass, ...prev])
+    setClassName('')
+    setSubject('')
+  }
+
+  const handleDeleteClass = (id) => {
+    setClasses((prev) => prev.filter((classItem) => classItem.id !== id))
+  }
+
+  const handleEditClass = (id) => {
+    const nextName = window.prompt('Update class name:')
+    const nextSubject = window.prompt('Update subject:')
+    if (!nextName || !nextSubject) return
+
+    setClasses((prev) => prev.map((classItem) => (
+      classItem.id === id
+        ? { ...classItem, name: nextName.trim(), subject: nextSubject.trim() }
+        : classItem
+    )))
+  }
+
+  const handleCopyCode = async (code) => {
+    try {
+      await navigator.clipboard.writeText(code)
+    } catch {
+      window.prompt('Copy this code:', code)
+    }
+  }
+
+  const totalStudents = classes.reduce((sum, classItem) => sum + (classItem.students?.length || 0), 0)
+
+  return (
+    <main className="teacher-dashboard-screen">
+      <div className="teacher-bg-shape teacher-bg-shape-1" aria-hidden="true" />
+      <div className="teacher-bg-shape teacher-bg-shape-2" aria-hidden="true" />
+
+      <header className="teacher-header">
+        <div className="container teacher-header-inner">
+          <p className="teacher-logo">Bloom Classroom</p>
+          <button className="btn btn-role-back" type="button" onClick={onBack}>Back to Landing</button>
+        </div>
+      </header>
+
+      <section className="container teacher-dashboard">
+        <h1 className="teacher-title">Welcome back, Teacher</h1>
+
+        <div className="teacher-grid-top">
+          <article className="teacher-glass-card">
+            <h2>Create Class</h2>
+            <form className="teacher-form" onSubmit={handleCreateClass}>
+              <input value={className} onChange={(e) => setClassName(e.target.value)} placeholder="Class name" />
+              <input value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="Subject" />
+              <button className="btn btn-role-continue" type="submit">Create Class</button>
+            </form>
+          </article>
+
+          <article className="teacher-glass-card">
+            <h2>Recent Activity</h2>
+            <ul className="teacher-list">
+              {classes.slice(0, 3).map((classItem) => (
+                <li key={classItem.id}>Created {classItem.name} ({classItem.subject})</li>
+              ))}
+              {classes.length === 0 && <li>No recent activity yet.</li>}
+            </ul>
+          </article>
+
+          <article className="teacher-glass-card">
+            <h2>Quick Actions</h2>
+            <div className="teacher-quick-actions">
+              <button className="btn btn-outline" type="button">Create Activity</button>
+              <button className="btn btn-outline" type="button">Message Students</button>
+              <button className="btn btn-outline" type="button">View Reports</button>
+            </div>
+          </article>
+        </div>
+
+        <div className="teacher-stats">
+          <article className="teacher-stat-card"><p>Total Classes</p><strong>{classes.length}</strong></article>
+          <article className="teacher-stat-card"><p>Students</p><strong>{totalStudents}</strong></article>
+          <article className="teacher-stat-card"><p>Activities</p><strong>0</strong></article>
+          <article className="teacher-stat-card"><p>Engagement</p><strong>0%</strong></article>
+        </div>
+
+        <section className="teacher-classes">
+          <h2>Your Classes</h2>
+          <div className="teacher-classes-grid">
+            {classes.map((classItem) => (
+              <article className="teacher-class-card" key={classItem.id}>
+                <h3>{classItem.name}</h3>
+                <p>{classItem.subject}</p>
+                <p><strong>Code:</strong> {classItem.code}</p>
+                <p><strong>Students:</strong> {classItem.students?.length || 0}</p>
+                <div className="teacher-class-actions">
+                  <button className="btn btn-outline" type="button" onClick={() => window.dispatchEvent(new CustomEvent('open-classroom', { detail: { classItem, from: 'teacher' } }))}>Open</button>
+                  <button className="btn btn-outline" type="button" onClick={() => handleEditClass(classItem.id)}>Edit</button>
+                  <button className="btn btn-outline" type="button" onClick={() => handleDeleteClass(classItem.id)}>Delete</button>
+                  <button className="btn btn-outline" type="button" onClick={() => handleCopyCode(classItem.code)}>Copy Code</button>
+                </div>
+              </article>
+            ))}
+            {classes.length === 0 && <p className="teacher-empty">No classes yet. Create your first class above.</p>}
+          </div>
+        </section>
+      </section>
+    </main>
+  )
+}
+
+function StudentPlaceholder({ onBack }) {
+  const [classCode, setClassCode] = useState('')
+  const [joinedClasses, setJoinedClasses] = useState([])
+  const [joinError, setJoinError] = useState('')
+
+  useEffect(() => {
+    const teacherClasses = JSON.parse(localStorage.getItem(BLOOM_CLASSES_KEY) || '[]')
+    const storedJoinedCodes = JSON.parse(localStorage.getItem(BLOOM_STUDENT_JOINED_CODES_KEY) || '[]')
+
+    const hydrated = storedJoinedCodes
+      .map((code) => teacherClasses.find((classItem) => classItem.code === code))
+      .filter(Boolean)
+      .map((classItem) => ({ ...classItem, progress: '0%', points: 0 }))
+
+    setJoinedClasses(hydrated)
+  }, [])
+
+  useEffect(() => {
+    localStorage.setItem(BLOOM_STUDENT_JOINED_CODES_KEY, JSON.stringify(joinedClasses.map((classItem) => classItem.code)))
+  }, [joinedClasses])
+
+  const handleJoinClass = (event) => {
+    event.preventDefault()
+    const normalizedCode = classCode.trim().toUpperCase()
+    if (!normalizedCode) return
+
+    const teacherClasses = JSON.parse(localStorage.getItem(BLOOM_CLASSES_KEY) || '[]')
+    const matchedClass = teacherClasses.find((classItem) => classItem.code === normalizedCode)
+
+    if (!matchedClass) {
+      setJoinError("We couldn't find that class code yet. Please check and try again.")
+      return
+    }
+
+    const alreadyJoined = joinedClasses.some((classItem) => classItem.code === normalizedCode)
+    if (alreadyJoined) {
+      setJoinError('You already joined this class.')
+      return
+    }
+
+    setJoinedClasses((prev) => [{
+      ...matchedClass,
+      progress: '0%',
+      points: 0,
+    }, ...prev])
+    setClassCode('')
+    setJoinError('Success! You joined the class.')
+  }
+
+  return (
+    <main className="student-dashboard-screen">
+      <div className="student-bg-shape student-bg-shape-1" aria-hidden="true" />
+      <div className="student-bg-shape student-bg-shape-2" aria-hidden="true" />
+
+      <header className="student-header">
+        <div className="container student-header-inner">
+          <p className="student-logo">Bloom Classroom</p>
+          <button className="btn btn-role-back" type="button" onClick={onBack}>Back to Landing</button>
+        </div>
+      </header>
+
+      <section className="container student-dashboard">
+        <h1 className="student-title">Welcome back, Student</h1>
+
+        <div className="student-grid-top">
+          <article className="student-glass-card">
+            <h2>Join Class</h2>
+            <form className="student-form" onSubmit={handleJoinClass}>
+              <input
+                value={classCode}
+                onChange={(e) => setClassCode(e.target.value)}
+                placeholder="Enter class code (e.g. BLOOM-1234)"
+              />
+              <button className="btn btn-role-continue" type="submit">Join Class</button>
+              {joinError && <p className="student-error">{joinError}</p>}
+            </form>
+          </article>
+
+          <article className="student-glass-card">
+            <h2>Progress</h2>
+            <div className="student-points-grid">
+              <div><p>Points</p><strong>{joinedClasses.length * 10}</strong></div>
+              <div><p>Avg. Progress</p><strong>{joinedClasses.length ? '12%' : '0%'}</strong></div>
+            </div>
+          </article>
+
+          <article className="student-glass-card">
+            <h2>Resources Preview</h2>
+            <ul className="student-list">
+              <li>AI study guides</li>
+              <li>Class handouts</li>
+              <li>Practice activities</li>
+            </ul>
+          </article>
+        </div>
+
+        <div className="student-grid-mid">
+          <article className="student-glass-card">
+            <h2>Upcoming Events</h2>
+            <ul className="student-list">
+              <li>Weekly quiz — Friday</li>
+              <li>Group project check-in — Monday</li>
+            </ul>
+          </article>
+          <article className="student-glass-card">
+            <h2>Recent Activity</h2>
+            <div className="student-activity-grid">
+              {joinedClasses.slice(0, 3).map((classItem) => (
+                <div key={classItem.id} className="student-activity-item">Joined {classItem.name}</div>
+              ))}
+              {joinedClasses.length === 0 && <div className="student-activity-item">No activity yet.</div>}
+            </div>
+          </article>
+        </div>
+
+        <section className="student-classes">
+          <h2>Joined Classes</h2>
+          <div className="student-classes-grid">
+            {joinedClasses.map((classItem) => (
+              <article className="student-class-card" key={classItem.id}>
+                <div className="student-class-top">
+                  <span className="student-class-icon" aria-hidden="true">📘</span>
+                  <div>
+                    <h3>{classItem.name}</h3>
+                    <p className="student-class-subject">{classItem.subject}</p>
+                  </div>
+                </div>
+                <p className="student-class-code"><span>Class Code</span> {classItem.code}</p>
+                <div className="student-class-metrics">
+                  <p><strong>Progress:</strong> {classItem.progress}</p>
+                  <p><strong>Points:</strong> {classItem.points}</p>
+                </div>
+                <div className="student-progress-placeholder" aria-hidden="true">
+                  <span style={{ width: classItem.progress }} />
+                </div>
+                <button className="btn btn-outline student-open-btn" type="button" onClick={() => window.dispatchEvent(new CustomEvent('open-classroom', { detail: { classItem, from: 'student' } }))}>Open</button>
+              </article>
+            ))}
+            {joinedClasses.length === 0 && <p className="student-empty">Join a class to see it here.</p>}
+          </div>
+        </section>
+      </section>
+    </main>
+  )
+}
+
+
+function ClassroomPage({ data, onBack }) {
+  const [activeTab, setActiveTab] = useState('Classroom')
+  const [studentName, setStudentName] = useState('')
+  const [classData, setClassData] = useState(data.classItem)
+  const [storyText, setStoryText] = useState('')
+  const [storyStatus, setStoryStatus] = useState('Working')
+  const [storyEmoji, setStoryEmoji] = useState('🌸')
+  const tabs = ['Classroom', 'Stories', 'Chat', 'Calendar', 'Resources', 'Activities', 'AI Tutor']
+  const studentAvatars = ['🙂', '🌟', '📚', '🧠', '🚀', '🎯']
+  const storyStatuses = ['Working', 'Thinking', 'Question', 'Proud', 'Need Help', 'Idea']
+  const storyEmojis = ['🌸', '✨', '💡', '📚', '🎯', '😊', '🤔', '🙋‍♀️']
+
+  useEffect(() => {
+    const classes = JSON.parse(localStorage.getItem(BLOOM_CLASSES_KEY) || '[]')
+    const latestClass = classes.find((item) => item.id === data.classItem.id)
+    if (latestClass) {
+      setClassData(latestClass)
+    }
+  }, [data.classItem.id])
+
+  const persistClass = (nextClass) => {
+    const classes = JSON.parse(localStorage.getItem(BLOOM_CLASSES_KEY) || '[]')
+    const updated = classes.map((item) => (item.id === nextClass.id ? nextClass : item))
+    localStorage.setItem(BLOOM_CLASSES_KEY, JSON.stringify(updated))
+    setClassData(nextClass)
+  }
+
+  const handleAddStudent = (event) => {
+    event.preventDefault()
+    if (!studentName.trim()) return
+    const nextStudents = [
+      ...(classData.students || []),
+      {
+        id: Date.now(),
+        name: studentName.trim(),
+        points: 0,
+        avatar: studentAvatars[Math.floor(Math.random() * studentAvatars.length)],
+      },
+    ]
+    persistClass({ ...classData, students: nextStudents })
+    setStudentName('')
+  }
+
+  const handleDeleteStudent = (studentId) => {
+    const nextStudents = (classData.students || []).filter((student) => student.id !== studentId)
+    persistClass({ ...classData, students: nextStudents })
+  }
+
+  const handleAdjustPoints = (studentId, delta, reason) => {
+    const nextStudents = (classData.students || []).map((student) => {
+      if (student.id !== studentId) return student
+      const nextPoints = Math.max(0, (student.points || 0) + delta)
+      return { ...student, points: nextPoints, lastReason: reason }
+    })
+    persistClass({ ...classData, students: nextStudents })
+  }
+
+  const handlePostStory = (event) => {
+    event.preventDefault()
+    if (!storyText.trim()) return
+    const nextStories = [
+      {
+        id: Date.now(),
+        author: data.from === 'teacher' ? 'Teacher' : 'Student',
+        status: storyStatus,
+        emoji: storyEmoji,
+        text: storyText.trim(),
+        createdAt: new Date().toISOString(),
+      },
+      ...(classData.stories || []),
+    ]
+    persistClass({ ...classData, stories: nextStories })
+    setStoryText('')
+  }
+
+  const totalStudents = (classData.students || []).length
+  const totalPoints = (classData.students || []).reduce((sum, student) => sum + (student.points || 0), 0)
+  const ownPoints = (classData.students || [])[0]?.points || 0
+  const pointReasons = [
+    'Active Participation',
+    'Helping Others',
+    'Team Collaboration',
+    'Great Effort',
+    'Creative Thinking',
+    'Focused Work',
+    'Needs Focus',
+    'Missing Task',
+    'Distracting Others',
+    'Incomplete Work',
+    'Late Arrival',
+  ]
+
+  return (
+    <main className="classroom-screen">
+      <header className="classroom-header"><div className="container classroom-header-inner"><p className="classroom-logo">Bloom Classroom</p><button className="btn btn-role-back" onClick={onBack} type="button">Back to Dashboard</button></div></header>
+      <section className="container classroom-shell">
+        <p className="classroom-role">{data.from === 'teacher' ? 'Teacher View' : 'Student View'}</p>
+        <h1 className="classroom-title">{classData.name}</h1>
+        <p className="classroom-subject">{classData.subject}</p>
+        <p className="classroom-code">{classData.code}</p>
+        <nav className="classroom-tabs" aria-label="Classroom tabs">
+          {tabs.map((tab) => <button key={tab} type="button" className={`classroom-tab ${activeTab === tab ? 'is-active' : ''}`} onClick={() => setActiveTab(tab)}>{tab}</button>)}
+        </nav>
+        {activeTab === 'Classroom' ? (
+          <section className="classroom-overview-grid">
+            <article className="classroom-content"><h2>Classroom Summary</h2><p>Total students: {totalStudents}</p><p>Total points: {totalPoints}</p><p>Attendance: 0%</p><p>Groups: 0</p></article>
+            <article className="classroom-content"><h2>Recent Activity</h2><p>Classroom activity feed coming next.</p><p>Recent classroom updates coming next.</p></article>
+            {data.from === 'teacher' ? (
+              <article className="classroom-content"><h2>Add Student</h2><form className="classroom-add-form" onSubmit={handleAddStudent}><input value={studentName} onChange={(e) => setStudentName(e.target.value)} placeholder="Student name" /><button className="btn btn-role-continue" type="submit">Add Student</button></form></article>
+            ) : (
+              <article className="classroom-content"><h2>Your Progress</h2><p>Own points: {ownPoints}</p><p>Classroom summary available here.</p></article>
+            )}
+            <article className="classroom-content classroom-students"><h2>{data.from === 'teacher' ? 'Students' : 'Classmates'}</h2><div className="classroom-student-grid">{(classData.students || []).map((student) => <div className="classroom-student-card" key={student.id}><p>{student.avatar || '🙂'} {student.name}</p><p>Points: {student.points || 0}</p><span>Participation: Starter</span>{data.from === 'teacher' && <><select defaultValue={student.lastReason || pointReasons[0]} onChange={(event) => { const nextStudents = (classData.students || []).map((item) => (item.id === student.id ? { ...item, lastReason: event.target.value } : item)); persistClass({ ...classData, students: nextStudents }) }}>{pointReasons.map((reason) => <option key={reason} value={reason}>{reason}</option>)}</select><div className="classroom-point-actions"><button className="btn btn-outline" type="button" onClick={() => handleAdjustPoints(student.id, 1, student.lastReason || pointReasons[0])}>+1</button><button className="btn btn-outline" type="button" onClick={() => handleAdjustPoints(student.id, -1, student.lastReason || pointReasons[0])}>-1</button></div><button className="btn btn-outline" type="button" onClick={() => handleDeleteStudent(student.id)}>Delete</button></>}</div>)}{(classData.students || []).length === 0 && <p>{data.from === 'teacher' ? 'No students yet.' : 'No classmates yet.'}</p>}</div></article>
+          </section>
+        ) : activeTab === 'Stories' ? (
+          <section className="classroom-stories-feed">
+            <article className="classroom-content story-composer">
+              <h2>Create Story</h2>
+              <form className="classroom-add-form" onSubmit={handlePostStory}>
+                <div className="story-composer-head"><span className="story-avatar">{data.from === 'teacher' ? '👩‍🏫' : '🧑‍🎓'}</span><p>Share something with your class…</p><span className="story-camera">📷</span></div>
+                <textarea value={storyText} onChange={(event) => setStoryText(event.target.value)} placeholder="Share something with your class…" rows={4} />
+                <div className="story-composer-actions"><select value={storyStatus} onChange={(event) => setStoryStatus(event.target.value)}>{storyStatuses.map((status) => <option key={status} value={status}>{status}</option>)}</select><select value={storyEmoji} onChange={(event) => setStoryEmoji(event.target.value)}>{storyEmojis.map((emoji) => <option key={emoji} value={emoji}>{emoji}</option>)}</select><button className="btn btn-role-continue" type="submit">Post</button></div>
+              </form>
+            </article>
+            <div className="story-list">{(classData.stories || []).map((story) => <article className="classroom-content story-card" key={story.id}><header className="story-card-head"><div><p className="story-author"><span className="story-avatar">{story.emoji}</span> {story.author}</p><p className="story-meta">{classData.name} · {new Date(story.createdAt).toLocaleString()}</p></div><span className="story-menu">⋯</span></header><span className="story-status">{story.status}</span><p className="story-text">{story.text}</p><footer className="story-reactions"><span>♡ 0 likes</span><span>💬 0 comments</span></footer></article>)}{(classData.stories || []).length === 0 && <article className="classroom-content story-card"><p>No stories yet. Be the first to post.</p></article>}</div>
+          </section>
+        ) : (
+          <article className="classroom-content"><h2>{activeTab} coming next</h2></article>
+        )}
+      </section>
+    </main>
+  )
+}
+
+function Landing({ onOpenRoleSelection }) {
   return (
     <>
       <header className="site-header">
@@ -12,8 +491,8 @@ function App() {
             <a href="#pricing">Pricing</a>
           </nav>
           <div className="actions">
-            <button className="btn btn-ghost" type="button">Log in</button>
-            <button className="btn btn-primary" type="button">Get started</button>
+            <button className="btn btn-ghost" type="button" onClick={onOpenRoleSelection}>Log In</button>
+            <button className="btn btn-primary" type="button" onClick={onOpenRoleSelection}>Get Started</button>
           </div>
         </div>
       </header>
@@ -27,8 +506,8 @@ function App() {
               Bloom Classroom helps teachers organize lessons, share assignments, and track student growth in one beautifully simple workspace.
             </p>
             <div className="hero-cta">
-              <button className="btn btn-primary" type="button">Start free trial</button>
-              <button className="btn btn-outline" type="button">View demo</button>
+              <button className="btn btn-primary" type="button" onClick={onOpenRoleSelection}>Start free trial</button>
+              <button className="btn btn-outline" type="button" onClick={onOpenRoleSelection}>View demo</button>
             </div>
             <ul className="hero-badges" aria-label="Highlights">
               <li>No credit card required</li>
@@ -107,12 +586,52 @@ function App() {
           <div className="container cta-card">
             <h2>Start your classroom transformation today</h2>
             <p>Join schools creating calmer workflows for teachers and better outcomes for students.</p>
-            <button className="btn btn-primary" type="button">Create your classroom</button>
+            <button className="btn btn-primary" type="button" onClick={onOpenRoleSelection}>Join a Class</button>
           </div>
         </section>
       </main>
     </>
   )
+}
+
+function App() {
+  const [screen, setScreen] = useState('landing')
+  const [selectedRole, setSelectedRole] = useState('')
+  const [activeClassroom, setActiveClassroom] = useState(null)
+
+  useEffect(() => {
+    const handler = (event) => {
+      setActiveClassroom(event.detail)
+      setScreen('classroom')
+    }
+    window.addEventListener('open-classroom', handler)
+    return () => window.removeEventListener('open-classroom', handler)
+  }, [])
+
+  if (screen === 'classroom' && activeClassroom) {
+    return <ClassroomPage data={activeClassroom} onBack={() => setScreen(activeClassroom.from === 'teacher' ? 'teacher-placeholder' : 'student-placeholder')} />
+  }
+
+  if (screen === 'role-selection') {
+    return (
+      <RoleSelection
+        selectedRole={selectedRole}
+        setSelectedRole={setSelectedRole}
+        onContinue={() => setScreen(selectedRole === 'teacher' ? 'teacher-placeholder' : 'student-placeholder')}
+        onBack={() => setScreen('landing')}
+      />
+    )
+  }
+
+  if (screen === 'teacher-placeholder') {
+    return <TeacherPlaceholder onBack={() => setScreen('landing')} />
+  }
+
+  if (screen === 'student-placeholder') {
+    return <StudentPlaceholder onBack={() => setScreen('landing')} />
+  }
+
+  return <Landing onOpenRoleSelection={() => setScreen('role-selection')} />
 }
 
 export default App
