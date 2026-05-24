@@ -194,14 +194,132 @@ function TeacherPlaceholder({ onBack }) {
 }
 
 function StudentPlaceholder({ onBack }) {
+  const [classCode, setClassCode] = useState('')
+  const [joinedClasses, setJoinedClasses] = useState([])
+  const [joinError, setJoinError] = useState('')
+
+  useEffect(() => {
+    const storedJoined = localStorage.getItem('bloom_student_joined_classes')
+    if (storedJoined) {
+      setJoinedClasses(JSON.parse(storedJoined))
+    }
+  }, [])
+
+  useEffect(() => {
+    localStorage.setItem('bloom_student_joined_classes', JSON.stringify(joinedClasses))
+  }, [joinedClasses])
+
+  const handleJoinClass = (event) => {
+    event.preventDefault()
+    const normalizedCode = classCode.trim().toUpperCase()
+    if (!normalizedCode) return
+
+    const teacherClasses = JSON.parse(localStorage.getItem('bloom_teacher_classes') || '[]')
+    const matchedClass = teacherClasses.find((classItem) => classItem.code === normalizedCode)
+
+    if (!matchedClass) {
+      setJoinError("We couldn't find that class code yet. Please check and try again.")
+      return
+    }
+
+    const alreadyJoined = joinedClasses.some((classItem) => classItem.code === normalizedCode)
+    if (alreadyJoined) {
+      setJoinError('You already joined this class.')
+      return
+    }
+
+    setJoinedClasses((prev) => [{
+      ...matchedClass,
+      progress: '0%',
+      points: 0,
+    }, ...prev])
+    setClassCode('')
+    setJoinError('')
+  }
+
   return (
-    <main className="section container" style={{ minHeight: '100vh', display: 'grid', placeItems: 'center' }}>
-      <div style={{ textAlign: 'center' }}>
-        <h1>Student Dashboard coming next</h1>
-        <button className="btn btn-primary" type="button" onClick={onBack}>
-          Back to Landing
-        </button>
-      </div>
+    <main className="student-dashboard-screen">
+      <div className="student-bg-shape student-bg-shape-1" aria-hidden="true" />
+      <div className="student-bg-shape student-bg-shape-2" aria-hidden="true" />
+
+      <header className="student-header">
+        <div className="container student-header-inner">
+          <p className="student-logo">Bloom Classroom</p>
+          <button className="btn btn-role-back" type="button" onClick={onBack}>Back to Landing</button>
+        </div>
+      </header>
+
+      <section className="container student-dashboard">
+        <h1 className="student-title">Welcome back, Student</h1>
+
+        <div className="student-grid-top">
+          <article className="student-glass-card">
+            <h2>Join Class</h2>
+            <form className="student-form" onSubmit={handleJoinClass}>
+              <input
+                value={classCode}
+                onChange={(e) => setClassCode(e.target.value)}
+                placeholder="Enter class code (e.g. BLOOM-1234)"
+              />
+              <button className="btn btn-role-continue" type="submit">Join Class</button>
+              {joinError && <p className="student-error">{joinError}</p>}
+            </form>
+          </article>
+
+          <article className="student-glass-card">
+            <h2>Progress</h2>
+            <div className="student-points-grid">
+              <div><p>Points</p><strong>{joinedClasses.length * 10}</strong></div>
+              <div><p>Avg. Progress</p><strong>{joinedClasses.length ? '12%' : '0%'}</strong></div>
+            </div>
+          </article>
+
+          <article className="student-glass-card">
+            <h2>Resources Preview</h2>
+            <ul className="student-list">
+              <li>AI study guides</li>
+              <li>Class handouts</li>
+              <li>Practice activities</li>
+            </ul>
+          </article>
+        </div>
+
+        <div className="student-grid-mid">
+          <article className="student-glass-card">
+            <h2>Upcoming Events</h2>
+            <ul className="student-list">
+              <li>Weekly quiz — Friday</li>
+              <li>Group project check-in — Monday</li>
+            </ul>
+          </article>
+          <article className="student-glass-card">
+            <h2>Recent Activity</h2>
+            <div className="student-activity-grid">
+              {joinedClasses.slice(0, 3).map((classItem) => (
+                <div key={classItem.id} className="student-activity-item">Joined {classItem.className}</div>
+              ))}
+              {joinedClasses.length === 0 && <div className="student-activity-item">No activity yet.</div>}
+            </div>
+          </article>
+        </div>
+
+        <section className="student-classes">
+          <h2>Joined Classes</h2>
+          <div className="student-classes-grid">
+            {joinedClasses.map((classItem) => (
+              <article className="student-class-card" key={classItem.id}>
+                <h3>{classItem.className}</h3>
+                <p>{classItem.subject}</p>
+                <p><strong>Code:</strong> {classItem.code}</p>
+                <p><strong>Progress:</strong> {classItem.progress}</p>
+                <p><strong>Points:</strong> {classItem.points}</p>
+                <button className="btn btn-outline" type="button">Open</button>
+              </article>
+            ))}
+            {joinedClasses.length === 0 && <p className="student-empty">Join a class to see it here.</p>}
+          </div>
+        </section>
+      </section>
     </main>
   )
 }
