@@ -317,12 +317,22 @@ function StudentPlaceholder({ onBack }) {
           <div className="student-classes-grid">
             {joinedClasses.map((classItem) => (
               <article className="student-class-card" key={classItem.id}>
-                <h3>{classItem.name}</h3>
-                <p>{classItem.subject}</p>
-                <p><strong>Code:</strong> {classItem.code}</p>
-                <p><strong>Progress:</strong> {classItem.progress}</p>
-                <p><strong>Points:</strong> {classItem.points}</p>
-                <button className="btn btn-outline" type="button">Open</button>
+                <div className="student-class-top">
+                  <span className="student-class-icon" aria-hidden="true">📘</span>
+                  <div>
+                    <h3>{classItem.name}</h3>
+                    <p className="student-class-subject">{classItem.subject}</p>
+                  </div>
+                </div>
+                <p className="student-class-code"><span>Class Code</span> {classItem.code}</p>
+                <div className="student-class-metrics">
+                  <p><strong>Progress:</strong> {classItem.progress}</p>
+                  <p><strong>Points:</strong> {classItem.points}</p>
+                </div>
+                <div className="student-progress-placeholder" aria-hidden="true">
+                  <span style={{ width: classItem.progress }} />
+                </div>
+                <button className="btn btn-outline student-open-btn" type="button">Open</button>
               </article>
             ))}
             {joinedClasses.length === 0 && <p className="student-empty">Join a class to see it here.</p>}
