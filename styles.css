@@ -473,3 +473,112 @@ blockquote cite {
   background: rgba(167, 139, 250, 0.28);
   border-color: rgba(167, 139, 250, 0.7);
 }
+
+/* Refined Bloom role selection (overrides) */
+.role-selection-screen {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+  background: linear-gradient(135deg, #F9D5E5 0%, #E9D5FF 45%, #DDEBFF 100%);
+  color: #2B2142;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(2rem, 4vw, 3.4rem) 0;
+}
+
+.role-bg-shape {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(3px);
+  opacity: 0.9;
+}
+
+.role-bg-shape-1 {
+  width: min(40vw, 360px);
+  height: min(40vw, 360px);
+  top: -120px;
+  left: -90px;
+  background: radial-gradient(circle, rgba(196, 181, 253, 0.95) 0%, rgba(196, 181, 253, 0.18) 64%, transparent 100%);
+}
+
+.role-bg-shape-2 {
+  width: min(36vw, 300px);
+  height: min(36vw, 300px);
+  right: -70px;
+  top: 14%;
+  background: radial-gradient(circle, rgba(189, 224, 254, 0.95) 0%, rgba(189, 224, 254, 0.2) 62%, transparent 100%);
+}
+
+.role-bg-shape-3 {
+  width: min(42vw, 380px);
+  height: min(42vw, 380px);
+  bottom: -160px;
+  left: 34%;
+  background: radial-gradient(circle, rgba(244, 194, 215, 0.88) 0%, rgba(244, 194, 215, 0.2) 58%, transparent 100%);
+}
+
+.role-shell {
+  position: relative;
+  z-index: 1;
+  width: min(980px, 92vw);
+  background: rgba(255, 249, 251, 0.62);
+  border: 1px solid rgba(255, 255, 255, 0.74);
+  border-radius: 32px;
+  box-shadow: 0 24px 70px rgba(84, 58, 138, 0.2);
+  backdrop-filter: blur(16px);
+  padding: clamp(1.4rem, 4vw, 2.6rem);
+}
+
+.role-logo { display:flex; justify-content:center; gap:0; margin-bottom:0.65rem; }
+.logo-dot {
+  width: 36px; height: 36px; border-radius: 999px; border: 2px solid rgba(255,255,255,0.8);
+  margin-left: -6px;
+}
+.logo-dot:first-child { margin-left: 0; }
+.dot-1 { background:#BFA9F6; }
+.dot-2 { background:#E7AFC2; }
+.dot-3 { background:#9DC3EE; }
+.dot-4 { background:#B9DCD4; }
+
+.role-brand { margin:0; text-align:center; color:#5f49a5; font-weight:800; letter-spacing:0.02em; }
+.role-title { text-align:center; margin-top:0.55rem; margin-bottom:0.35rem; font-size:clamp(1.8rem,4.4vw,2.9rem); color:#2B2142; }
+.role-subtitle { margin:0 auto; max-width:58ch; text-align:center; color:#7B6D9B; line-height:1.6; }
+
+.role-grid { margin-top:1.5rem; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1.05rem; }
+.role-card {
+  text-align:left;
+  border:1px solid rgba(196,181,253,0.42);
+  border-radius:22px;
+  background: rgba(255, 249, 251, 0.82);
+  box-shadow: 0 14px 34px rgba(84, 58, 138, 0.14);
+  padding: 1.25rem;
+  color:#2B2142;
+  transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+}
+.role-card:hover { transform: translateY(-6px); border-color: rgba(167,139,250,0.72); box-shadow:0 20px 42px rgba(84,58,138,0.2); }
+.role-card.is-active { border-color:#A78BFA; box-shadow:0 0 0 3px rgba(167,139,250,0.28), 0 18px 44px rgba(84,58,138,0.22); }
+.role-card:focus-visible, .btn-role-continue:focus-visible, .btn-role-back:focus-visible { outline:3px solid rgba(167,139,250,0.55); outline-offset:2px; }
+
+.role-icon {
+  display:inline-grid; place-items:center; width:56px; height:56px; border-radius:16px; font-size:1.6rem;
+  background: linear-gradient(135deg, #CDEFE8 0%, #BDE0FE 100%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);
+}
+.role-card-title { display:block; margin-top:0.9rem; font-size:1.22rem; font-weight:700; }
+.role-card-copy { display:block; margin-top:0.5rem; color:#7B6D9B; line-height:1.56; }
+
+.role-actions { margin-top:1.3rem; display:grid; gap:0.78rem; }
+.btn-role-continue {
+  background: linear-gradient(135deg, #A78BFA 0%, #C4B5FD 46%, #F4C2D7 100%);
+  color:#fff;
+  box-shadow:0 12px 28px rgba(167,139,250,0.35);
+}
+.btn-role-continue:disabled { opacity:0.6; cursor:not-allowed; box-shadow:none; }
+.btn-role-back { background:rgba(255,249,251,0.9); color:#2B2142; border:1px solid rgba(123,109,155,0.3); }
+
+@media (max-width: 900px) {
+  .role-shell { border-radius: 24px; }
+  .role-grid { grid-template-columns: 1fr; }
+}

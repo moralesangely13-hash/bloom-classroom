@@ -8,10 +8,15 @@ function RoleSelection({ selectedRole, setSelectedRole, onContinue, onBack }) {
       <div className="role-bg-shape role-bg-shape-3" aria-hidden="true" />
 
       <section className="role-shell container">
+        <div className="role-logo" aria-hidden="true">
+          <span className="logo-dot dot-1" />
+          <span className="logo-dot dot-2" />
+          <span className="logo-dot dot-3" />
+          <span className="logo-dot dot-4" />
+        </div>
         <p className="role-brand">Bloom Classroom</p>
-        <h1 className="role-title">Welcome back to your classroom flow</h1>
-        <p className="role-subtitle">Choose how you want to continue so we can tailor your next screen.</p>
-        <p className="role-helper">Select one role to enable Continue.</p>
+        <h1 className="role-title">Welcome to your learning space</h1>
+        <p className="role-subtitle">Choose your role to personalize what happens next.</p>
 
         <div className="role-grid" role="radiogroup" aria-label="Choose your role">
           <button
@@ -21,10 +26,7 @@ function RoleSelection({ selectedRole, setSelectedRole, onContinue, onBack }) {
             aria-pressed={selectedRole === 'teacher'}
           >
             <span className="role-icon" aria-hidden="true">🧑‍🏫</span>
-            <span className="role-card-title-row">
-              <span className="role-card-title">Teacher</span>
-              <span className="role-chip">Educator</span>
-            </span>
+            <span className="role-card-title">Teacher</span>
             <span className="role-card-copy">Manage classrooms, activities, students, and engagement.</span>
           </button>
 
@@ -35,10 +37,7 @@ function RoleSelection({ selectedRole, setSelectedRole, onContinue, onBack }) {
             aria-pressed={selectedRole === 'student'}
           >
             <span className="role-icon" aria-hidden="true">🧑‍🎓</span>
-            <span className="role-card-title-row">
-              <span className="role-card-title">Student</span>
-              <span className="role-chip">Learner</span>
-            </span>
+            <span className="role-card-title">Student</span>
             <span className="role-card-copy">Join classes, track progress, and learn with AI support.</span>
           </button>
         </div>
