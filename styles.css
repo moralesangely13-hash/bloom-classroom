@@ -976,3 +976,9 @@ h2 { color: #2B2142; }
 .classroom-tabs{display:flex;flex-wrap:wrap;gap:.5rem}.classroom-tab{border:1px solid rgba(196,181,253,.5);background:rgba(255,249,251,.85);color:#2B2142;border-radius:999px;padding:.45rem .8rem;cursor:pointer}
 .classroom-tab.is-active{background:linear-gradient(135deg,#A78BFA 0%,#C4B5FD 50%,#BDE0FE 100%);color:#fff;border-color:transparent}
 .classroom-content{margin-top:1rem;background:rgba(255,249,251,.82);border:1px solid rgba(196,181,253,.4);border-radius:20px;box-shadow:0 16px 36px rgba(84,58,138,.14);padding:1.1rem}
+.classroom-overview-grid{display:grid;gap:1rem;grid-template-columns:repeat(2,minmax(0,1fr));margin-top:1rem}
+.classroom-add-form{display:grid;gap:.55rem}.classroom-add-form input{border:1px solid rgba(196,181,253,.5);background:rgba(255,255,255,.82);border-radius:12px;padding:.65rem .75rem}
+.classroom-students{grid-column:1/-1}.classroom-student-grid{display:grid;gap:.7rem;grid-template-columns:repeat(3,minmax(0,1fr))}
+.classroom-student-card{background:linear-gradient(145deg,rgba(255,249,251,.9),rgba(255,255,255,.76));border:1px solid rgba(196,181,253,.45);border-radius:14px;padding:.75rem;box-shadow:0 10px 24px rgba(84,58,138,.12)}
+.classroom-student-card p{margin:.2rem 0;color:#7B6D9B}.classroom-student-card span{display:inline-block;margin:.2rem 0 .5rem;background:rgba(196,181,253,.25);border-radius:999px;padding:.2rem .5rem;font-size:.75rem;color:#5f4ba2}
+@media (max-width:900px){.classroom-overview-grid{grid-template-columns:1fr}.classroom-student-grid{grid-template-columns:1fr}}

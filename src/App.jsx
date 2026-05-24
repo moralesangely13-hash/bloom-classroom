@@ -346,20 +346,58 @@ function StudentPlaceholder({ onBack }) {
 
 function ClassroomPage({ data, onBack }) {
   const [activeTab, setActiveTab] = useState('Classroom')
+  const [studentName, setStudentName] = useState('')
+  const [classData, setClassData] = useState(data.classItem)
   const tabs = ['Classroom', 'History', 'Chat', 'Calendar', 'Resources', 'Activities', 'AI Tutor']
+
+  const persistClass = (nextClass) => {
+    const classes = JSON.parse(localStorage.getItem(BLOOM_CLASSES_KEY) || '[]')
+    const updated = classes.map((item) => (item.id === nextClass.id ? nextClass : item))
+    localStorage.setItem(BLOOM_CLASSES_KEY, JSON.stringify(updated))
+    setClassData(nextClass)
+  }
+
+  const handleAddStudent = (event) => {
+    event.preventDefault()
+    if (!studentName.trim()) return
+    const nextStudents = [...(classData.students || []), { id: Date.now(), name: studentName.trim(), points: 0 }]
+    persistClass({ ...classData, students: nextStudents })
+    setStudentName('')
+  }
+
+  const handleDeleteStudent = (studentId) => {
+    const nextStudents = (classData.students || []).filter((student) => student.id !== studentId)
+    persistClass({ ...classData, students: nextStudents })
+  }
+
+  const totalStudents = (classData.students || []).length
+  const totalPoints = (classData.students || []).reduce((sum, student) => sum + (student.points || 0), 0)
 
   return (
     <main className="classroom-screen">
       <header className="classroom-header"><div className="container classroom-header-inner"><p className="classroom-logo">Bloom Classroom</p><button className="btn btn-role-back" onClick={onBack} type="button">Back to Dashboard</button></div></header>
       <section className="container classroom-shell">
         <p className="classroom-role">{data.from === 'teacher' ? 'Teacher View' : 'Student View'}</p>
-        <h1 className="classroom-title">{data.classItem.name}</h1>
-        <p className="classroom-subject">{data.classItem.subject}</p>
-        <p className="classroom-code">{data.classItem.code}</p>
+        <h1 className="classroom-title">{classData.name}</h1>
+        <p className="classroom-subject">{classData.subject}</p>
+        <p className="classroom-code">{classData.code}</p>
         <nav className="classroom-tabs" aria-label="Classroom tabs">
           {tabs.map((tab) => <button key={tab} type="button" className={`classroom-tab ${activeTab === tab ? 'is-active' : ''}`} onClick={() => setActiveTab(tab)}>{tab}</button>)}
         </nav>
-        <article className="classroom-content"><h2>{activeTab} coming next</h2></article>
+        {activeTab === 'Classroom' ? (
+          <section className="classroom-overview-grid">
+            <article className="classroom-content"><h2>Classroom Summary</h2><p>Total students: {totalStudents}</p><p>Total points: {totalPoints}</p><p>Attendance: 0%</p><p>Groups: 0</p></article>
+            <article className="classroom-content"><h2>Recent Activity</h2><p>Classroom activity feed coming next.</p><p>Recent classroom updates coming next.</p></article>
+            {data.from === 'teacher' ? (
+              <article className="classroom-content"><h2>Add Student</h2><form className="classroom-add-form" onSubmit={handleAddStudent}><input value={studentName} onChange={(e) => setStudentName(e.target.value)} placeholder="Student name" /><button className="btn btn-role-continue" type="submit">Add Student</button></form></article>
+            ) : (
+              <article className="classroom-content"><h2>Your Progress</h2><p>Own points: 0</p><p>Classroom summary available here.</p></article>
+            )}
+            <article className="classroom-content classroom-students"><h2>{data.from === 'teacher' ? 'Students' : 'Classmates'}</h2><div className="classroom-student-grid">{(classData.students || []).map((student) => <div className="classroom-student-card" key={student.id}><p>🙂 {student.name}</p><p>Points: {student.points || 0}</p><span>Participation: Starter</span>{data.from === 'teacher' && <button className="btn btn-outline" type="button" onClick={() => handleDeleteStudent(student.id)}>Delete</button>}</div>)}{(classData.students || []).length === 0 && <p>No students yet.</p>}</div></article>
+          </section>
+        ) : (
+          <article className="classroom-content"><h2>{activeTab} coming next</h2></article>
+        )}
       </section>
     </main>
   )
