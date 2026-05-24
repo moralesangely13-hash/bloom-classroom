@@ -1,5 +1,66 @@
-import React from 'react'
-function App() {
+import React, { useState } from 'react'
+
+function RoleSelection({ selectedRole, setSelectedRole, onContinue, onBack }) {
+  return (
+    <main className="section container" style={{ minHeight: '100vh', display: 'grid', placeItems: 'center' }}>
+      <div style={{ width: '100%', maxWidth: '520px', textAlign: 'center' }}>
+        <h1>Choose your role</h1>
+        <div style={{ display: 'grid', gap: '12px', marginTop: '20px' }}>
+          <button
+            className={`btn ${selectedRole === 'teacher' ? 'btn-primary' : 'btn-outline'}`}
+            type="button"
+            onClick={() => setSelectedRole('teacher')}
+          >
+            Teacher
+          </button>
+          <button
+            className={`btn ${selectedRole === 'student' ? 'btn-primary' : 'btn-outline'}`}
+            type="button"
+            onClick={() => setSelectedRole('student')}
+          >
+            Student
+          </button>
+        </div>
+        <div style={{ display: 'grid', gap: '12px', marginTop: '20px' }}>
+          <button className="btn btn-primary" type="button" onClick={onContinue}>
+            Continue
+          </button>
+          <button className="btn btn-ghost" type="button" onClick={onBack}>
+            Back to Landing
+          </button>
+        </div>
+      </div>
+    </main>
+  )
+}
+
+function TeacherPlaceholder({ onBack }) {
+  return (
+    <main className="section container" style={{ minHeight: '100vh', display: 'grid', placeItems: 'center' }}>
+      <div style={{ textAlign: 'center' }}>
+        <h1>Teacher Dashboard coming next</h1>
+        <button className="btn btn-primary" type="button" onClick={onBack}>
+          Back to Landing
+        </button>
+      </div>
+    </main>
+  )
+}
+
+function StudentPlaceholder({ onBack }) {
+  return (
+    <main className="section container" style={{ minHeight: '100vh', display: 'grid', placeItems: 'center' }}>
+      <div style={{ textAlign: 'center' }}>
+        <h1>Student Dashboard coming next</h1>
+        <button className="btn btn-primary" type="button" onClick={onBack}>
+          Back to Landing
+        </button>
+      </div>
+    </main>
+  )
+}
+
+function Landing({ onOpenRoleSelection }) {
   return (
     <>
       <header className="site-header">
@@ -12,8 +73,8 @@ function App() {
             <a href="#pricing">Pricing</a>
           </nav>
           <div className="actions">
-            <button className="btn btn-ghost" type="button">Log in</button>
-            <button className="btn btn-primary" type="button">Get started</button>
+            <button className="btn btn-ghost" type="button" onClick={onOpenRoleSelection}>Log In</button>
+            <button className="btn btn-primary" type="button" onClick={onOpenRoleSelection}>Get Started</button>
           </div>
         </div>
       </header>
@@ -27,8 +88,8 @@ function App() {
               Bloom Classroom helps teachers organize lessons, share assignments, and track student growth in one beautifully simple workspace.
             </p>
             <div className="hero-cta">
-              <button className="btn btn-primary" type="button">Start free trial</button>
-              <button className="btn btn-outline" type="button">View demo</button>
+              <button className="btn btn-primary" type="button" onClick={onOpenRoleSelection}>Start free trial</button>
+              <button className="btn btn-outline" type="button" onClick={onOpenRoleSelection}>View demo</button>
             </div>
             <ul className="hero-badges" aria-label="Highlights">
               <li>No credit card required</li>
@@ -107,12 +168,38 @@ function App() {
           <div className="container cta-card">
             <h2>Start your classroom transformation today</h2>
             <p>Join schools creating calmer workflows for teachers and better outcomes for students.</p>
-            <button className="btn btn-primary" type="button">Create your classroom</button>
+            <button className="btn btn-primary" type="button" onClick={onOpenRoleSelection}>Join a Class</button>
           </div>
         </section>
       </main>
     </>
   )
+}
+
+function App() {
+  const [screen, setScreen] = useState('landing')
+  const [selectedRole, setSelectedRole] = useState('teacher')
+
+  if (screen === 'role-selection') {
+    return (
+      <RoleSelection
+        selectedRole={selectedRole}
+        setSelectedRole={setSelectedRole}
+        onContinue={() => setScreen(selectedRole === 'teacher' ? 'teacher-placeholder' : 'student-placeholder')}
+        onBack={() => setScreen('landing')}
+      />
+    )
+  }
+
+  if (screen === 'teacher-placeholder') {
+    return <TeacherPlaceholder onBack={() => setScreen('landing')} />
+  }
+
+  if (screen === 'student-placeholder') {
+    return <StudentPlaceholder onBack={() => setScreen('landing')} />
+  }
+
+  return <Landing onOpenRoleSelection={() => setScreen('role-selection')} />
 }
 
 export default App
