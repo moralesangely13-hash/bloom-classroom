@@ -359,6 +359,8 @@ function ClassroomPage({ data, onBack }) {
   const [commentInputs, setCommentInputs] = useState({})
   const [chatMessage, setChatMessage] = useState('')
   const [showNotifications, setShowNotifications] = useState(false)
+  const [eventDraft, setEventDraft] = useState({ title: '', date: '', time: '', description: '', emoji: '📚' })
+  const [editingEventId, setEditingEventId] = useState(null)
   const tabs = ['Classroom', 'Stories', 'Chat', 'Calendar', 'Resources', 'Activities', 'AI Tutor']
   const studentAvatars = ['🙂', '🌟', '📚', '🧠', '🚀', '🎯']
   const storyStatuses = ['Working', 'Thinking', 'Question', 'Proud', 'Need Help', 'Idea']
@@ -482,6 +484,40 @@ function ClassroomPage({ data, onBack }) {
       persistClass({ ...classData, notifications: (classData.notifications || []).map((item) => ({ ...item, read: true })) })
     }
   }
+  const handleSaveEvent = (event) => {
+    event.preventDefault()
+    if (!eventDraft.title.trim() || !eventDraft.date || !eventDraft.time) return
+    const payload = { ...eventDraft, title: eventDraft.title.trim(), description: eventDraft.description.trim() }
+    const nextEvents = editingEventId
+      ? (classData.events || []).map((item) => (item.id === editingEventId ? { ...item, ...payload } : item))
+      : [{ id: Date.now(), ...payload, createdBy: 'Teacher' }, ...(classData.events || [])]
+    const nextClass = { ...classData, events: nextEvents }
+    if (editingEventId) {
+      persistClass(nextClass)
+    } else {
+      notify(nextClass, `New event scheduled: ${payload.title}.`)
+    }
+    setEventDraft({ title: '', date: '', time: '', description: '', emoji: '📚' })
+    setEditingEventId(null)
+  }
+  const handleEditEvent = (eventItem) => {
+    setEditingEventId(eventItem.id)
+    setEventDraft({
+      title: eventItem.title || '',
+      date: eventItem.date || '',
+      time: eventItem.time || '',
+      description: eventItem.description || '',
+      emoji: eventItem.emoji || '📚',
+    })
+  }
+  const handleDeleteEvent = (eventId) => {
+    const nextEvents = (classData.events || []).filter((item) => item.id !== eventId)
+    persistClass({ ...classData, events: nextEvents })
+    if (editingEventId === eventId) {
+      setEditingEventId(null)
+      setEventDraft({ title: '', date: '', time: '', description: '', emoji: '📚' })
+    }
+  }
 
   const handleStoryImageChange = (event) => {
     const file = event.target.files?.[0]
@@ -515,6 +551,7 @@ function ClassroomPage({ data, onBack }) {
     'Incomplete Work',
     'Late Arrival',
   ]
+  const sortedEvents = [...(classData.events || [])].sort((a, b) => new Date(`${a.date}T${a.time}`).getTime() - new Date(`${b.date}T${b.time}`).getTime())
 
   return (
     <main className="classroom-screen">
@@ -552,6 +589,11 @@ function ClassroomPage({ data, onBack }) {
               </form>
             </article>
             <div className="story-list">{(classData.stories || []).map((story) => <article className="classroom-content story-card" key={story.id}><header className="story-card-head"><div><p className="story-author"><span className="story-avatar">{story.emoji}</span> {story.author}</p><p className="story-meta">{classData.name} · {new Date(story.createdAt).toLocaleString()}</p></div><div className="story-card-actions"><span className="story-menu">⋯</span><button className="story-delete-btn" type="button" onClick={() => handleDeleteStory(story.id)}>Delete</button></div></header><span className="story-status">{story.status}</span>{story.text && <p className="story-text">{story.text}</p>}{story.image && <img className="story-feed-image" src={story.image} alt="Story post" />}<footer className="story-reactions"><button className={`story-like-btn ${story.liked ? 'is-liked' : ''}`} type="button" onClick={() => handleToggleStoryLike(story.id)}>{story.liked ? '♥' : '♡'} {story.likes || 0} likes</button><button className="story-comments-toggle" type="button" onClick={() => setOpenCommentsByStory((prev) => ({ ...prev, [story.id]: !prev[story.id] }))}>💬 {(story.comments || []).length} comments</button></footer>{openCommentsByStory[story.id] && <section className="story-comments"><div className="story-comments-list">{(story.comments || []).map((comment) => <article key={comment.id} className="story-comment"><p><span>{comment.avatar}</span> <strong>{comment.username}</strong> · {new Date(comment.createdAt).toLocaleString()}</p><p>{comment.text}</p></article>)}{(story.comments || []).length === 0 && <p className="story-comment-empty">No comments yet.</p>}</div><div className="story-comment-form"><input value={commentInputs[story.id] || ''} onChange={(event) => setCommentInputs((prev) => ({ ...prev, [story.id]: event.target.value }))} placeholder="Write a comment..." /><button className="btn btn-outline" type="button" onClick={() => handleAddStoryComment(story.id)}>Post</button></div></section>}</article>)}{(classData.stories || []).length === 0 && <article className="classroom-content story-card"><p>No stories yet. Be the first to post.</p></article>}</div>
+          </section>
+        ) : activeTab === 'Calendar' ? (
+          <section className="classroom-overview-grid">
+            <article className="classroom-content classroom-students"><h2>Upcoming Events</h2><div className="story-list">{sortedEvents.map((eventItem) => <article className="classroom-student-card" key={eventItem.id}><p><strong>{eventItem.emoji || '📚'} {eventItem.title}</strong></p><p>{new Date(`${eventItem.date}T${eventItem.time}`).toLocaleString()}</p><p>{eventItem.description || 'No description yet.'}</p><span>Teacher Event</span>{data.from === 'teacher' && <div className="teacher-class-actions"><button className="btn btn-outline" type="button" onClick={() => handleEditEvent(eventItem)}>Edit</button><button className="btn btn-outline" type="button" onClick={() => handleDeleteEvent(eventItem.id)}>Delete</button></div>}</article>)}{sortedEvents.length === 0 && <p>No events yet.</p>}</div></article>
+            {data.from === 'teacher' && <article className="classroom-content"><h2>{editingEventId ? 'Edit Event' : 'Create Event'}</h2><form className="classroom-add-form" onSubmit={handleSaveEvent}><input value={eventDraft.title} onChange={(e) => setEventDraft((prev) => ({ ...prev, title: e.target.value }))} placeholder="Event title" /><input type="date" value={eventDraft.date} onChange={(e) => setEventDraft((prev) => ({ ...prev, date: e.target.value }))} /><input type="time" value={eventDraft.time} onChange={(e) => setEventDraft((prev) => ({ ...prev, time: e.target.value }))} /><textarea value={eventDraft.description} onChange={(e) => setEventDraft((prev) => ({ ...prev, description: e.target.value }))} placeholder="Short description" rows={3} /><select value={eventDraft.emoji} onChange={(e) => setEventDraft((prev) => ({ ...prev, emoji: e.target.value }))}><option>📚</option><option>🧪</option><option>📝</option><option>🎯</option><option>🌟</option><option>📣</option></select><button className="btn btn-role-continue" type="submit">{editingEventId ? 'Save Changes' : 'Save Event'}</button></form></article>}
           </section>
         ) : activeTab === 'Chat' ? (
           <section className="classroom-content classroom-chat"><div className="classroom-chat-messages">{(classData.chatMessages || []).map((message) => <article key={message.id} className={`classroom-chat-bubble ${message.sender === 'Teacher' ? 'is-teacher' : 'is-student'}`}><p><strong>{message.avatar} {message.sender}</strong> · {new Date(message.createdAt).toLocaleTimeString()}</p><p>{message.text}</p></article>)}{(classData.chatMessages || []).length === 0 && <p>No chat messages yet.</p>}</div><form className="classroom-chat-form" onSubmit={handleSendChat}><input value={chatMessage} onChange={(event) => setChatMessage(event.target.value)} placeholder="Write a message..." /><button className="btn btn-role-continue" type="submit">Send</button></form></section>
