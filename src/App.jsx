@@ -387,8 +387,31 @@ function ClassroomPage({ data, onBack }) {
     persistClass({ ...classData, students: nextStudents })
   }
 
+  const handleAdjustPoints = (studentId, delta, reason) => {
+    const nextStudents = (classData.students || []).map((student) => {
+      if (student.id !== studentId) return student
+      const nextPoints = Math.max(0, (student.points || 0) + delta)
+      return { ...student, points: nextPoints, lastReason: reason }
+    })
+    persistClass({ ...classData, students: nextStudents })
+  }
+
   const totalStudents = (classData.students || []).length
   const totalPoints = (classData.students || []).reduce((sum, student) => sum + (student.points || 0), 0)
+  const ownPoints = (classData.students || [])[0]?.points || 0
+  const pointReasons = [
+    'Active Participation',
+    'Helping Others',
+    'Team Collaboration',
+    'Great Effort',
+    'Creative Thinking',
+    'Focused Work',
+    'Needs Focus',
+    'Missing Task',
+    'Distracting Others',
+    'Incomplete Work',
+    'Late Arrival',
+  ]
 
   return (
     <main className="classroom-screen">
@@ -408,9 +431,9 @@ function ClassroomPage({ data, onBack }) {
             {data.from === 'teacher' ? (
               <article className="classroom-content"><h2>Add Student</h2><form className="classroom-add-form" onSubmit={handleAddStudent}><input value={studentName} onChange={(e) => setStudentName(e.target.value)} placeholder="Student name" /><button className="btn btn-role-continue" type="submit">Add Student</button></form></article>
             ) : (
-              <article className="classroom-content"><h2>Your Progress</h2><p>Own points: 0</p><p>Classroom summary available here.</p></article>
+              <article className="classroom-content"><h2>Your Progress</h2><p>Own points: {ownPoints}</p><p>Classroom summary available here.</p></article>
             )}
-            <article className="classroom-content classroom-students"><h2>{data.from === 'teacher' ? 'Students' : 'Classmates'}</h2><div className="classroom-student-grid">{(classData.students || []).map((student) => <div className="classroom-student-card" key={student.id}><p>{student.avatar || '🙂'} {student.name}</p><p>Points: {student.points || 0}</p><span>Participation: Starter</span>{data.from === 'teacher' && <button className="btn btn-outline" type="button" onClick={() => handleDeleteStudent(student.id)}>Delete</button>}</div>)}{(classData.students || []).length === 0 && <p>{data.from === 'teacher' ? 'No students yet.' : 'No classmates yet.'}</p>}</div></article>
+            <article className="classroom-content classroom-students"><h2>{data.from === 'teacher' ? 'Students' : 'Classmates'}</h2><div className="classroom-student-grid">{(classData.students || []).map((student) => <div className="classroom-student-card" key={student.id}><p>{student.avatar || '🙂'} {student.name}</p><p>Points: {student.points || 0}</p><span>Participation: Starter</span>{data.from === 'teacher' && <><select defaultValue={student.lastReason || pointReasons[0]} onChange={(event) => { const nextStudents = (classData.students || []).map((item) => (item.id === student.id ? { ...item, lastReason: event.target.value } : item)); persistClass({ ...classData, students: nextStudents }) }}>{pointReasons.map((reason) => <option key={reason} value={reason}>{reason}</option>)}</select><div className="classroom-point-actions"><button className="btn btn-outline" type="button" onClick={() => handleAdjustPoints(student.id, 1, student.lastReason || pointReasons[0])}>+1</button><button className="btn btn-outline" type="button" onClick={() => handleAdjustPoints(student.id, -1, student.lastReason || pointReasons[0])}>-1</button></div><button className="btn btn-outline" type="button" onClick={() => handleDeleteStudent(student.id)}>Delete</button></>}</div>)}{(classData.students || []).length === 0 && <p>{data.from === 'teacher' ? 'No students yet.' : 'No classmates yet.'}</p>}</div></article>
           </section>
         ) : (
           <article className="classroom-content"><h2>{activeTab} coming next</h2></article>
