@@ -345,7 +345,8 @@ function StudentPlaceholder({ onBack }) {
 
 
 function ClassroomPage({ data, onBack }) {
-  const [activeTab, setActiveTab] = useState('Classroom')
+  const classroomTabKey = `bloomClassroomActiveTab:${data.classItem.id}`
+  const [activeTab, setActiveTab] = useState(() => localStorage.getItem(classroomTabKey) || 'Classroom')
   const [studentName, setStudentName] = useState('')
   const [classData, setClassData] = useState(data.classItem)
   const [storyText, setStoryText] = useState('')
@@ -353,6 +354,8 @@ function ClassroomPage({ data, onBack }) {
   const [storyEmoji, setStoryEmoji] = useState('🌸')
   const [storyImage, setStoryImage] = useState('')
   const [storyImageError, setStoryImageError] = useState('')
+  const [openCommentsByStory, setOpenCommentsByStory] = useState({})
+  const [commentInputs, setCommentInputs] = useState({})
   const tabs = ['Classroom', 'Stories', 'Chat', 'Calendar', 'Resources', 'Activities', 'AI Tutor']
   const studentAvatars = ['🙂', '🌟', '📚', '🧠', '🚀', '🎯']
   const storyStatuses = ['Working', 'Thinking', 'Question', 'Proud', 'Need Help', 'Idea']
@@ -365,6 +368,10 @@ function ClassroomPage({ data, onBack }) {
       setClassData(latestClass)
     }
   }, [data.classItem.id])
+
+  useEffect(() => {
+    localStorage.setItem(classroomTabKey, activeTab)
+  }, [activeTab, classroomTabKey])
 
   const persistClass = (nextClass) => {
     const classes = JSON.parse(localStorage.getItem(BLOOM_CLASSES_KEY) || '[]')
@@ -439,6 +446,21 @@ function ClassroomPage({ data, onBack }) {
     persistClass({ ...classData, stories: nextStories })
   }
 
+  const handleAddStoryComment = (storyId) => {
+    const commentText = (commentInputs[storyId] || '').trim()
+    if (!commentText) return
+    const nextStories = (classData.stories || []).map((story) => {
+      if (story.id !== storyId) return story
+      const comments = [
+        ...(story.comments || []),
+        { id: Date.now(), avatar: data.from === 'teacher' ? '👩‍🏫' : '🧑‍🎓', username: data.from === 'teacher' ? 'Teacher' : 'Student', text: commentText, createdAt: new Date().toISOString() },
+      ]
+      return { ...story, comments }
+    })
+    persistClass({ ...classData, stories: nextStories })
+    setCommentInputs((prev) => ({ ...prev, [storyId]: '' }))
+  }
+
   const handleStoryImageChange = (event) => {
     const file = event.target.files?.[0]
     if (!file) return
@@ -506,7 +528,7 @@ function ClassroomPage({ data, onBack }) {
                 <div className="story-composer-actions"><select value={storyStatus} onChange={(event) => setStoryStatus(event.target.value)}>{storyStatuses.map((status) => <option key={status} value={status}>{status}</option>)}</select><select value={storyEmoji} onChange={(event) => setStoryEmoji(event.target.value)}>{storyEmojis.map((emoji) => <option key={emoji} value={emoji}>{emoji}</option>)}</select><button className="btn btn-role-continue" type="submit">Post</button></div>
               </form>
             </article>
-            <div className="story-list">{(classData.stories || []).map((story) => <article className="classroom-content story-card" key={story.id}><header className="story-card-head"><div><p className="story-author"><span className="story-avatar">{story.emoji}</span> {story.author}</p><p className="story-meta">{classData.name} · {new Date(story.createdAt).toLocaleString()}</p></div><div className="story-card-actions"><span className="story-menu">⋯</span><button className="story-delete-btn" type="button" onClick={() => handleDeleteStory(story.id)}>Delete</button></div></header><span className="story-status">{story.status}</span>{story.text && <p className="story-text">{story.text}</p>}{story.image && <img className="story-feed-image" src={story.image} alt="Story post" />}<footer className="story-reactions"><button className={`story-like-btn ${story.liked ? 'is-liked' : ''}`} type="button" onClick={() => handleToggleStoryLike(story.id)}>{story.liked ? '♥' : '♡'} {story.likes || 0} likes</button><span>💬 0 comments</span></footer></article>)}{(classData.stories || []).length === 0 && <article className="classroom-content story-card"><p>No stories yet. Be the first to post.</p></article>}</div>
+            <div className="story-list">{(classData.stories || []).map((story) => <article className="classroom-content story-card" key={story.id}><header className="story-card-head"><div><p className="story-author"><span className="story-avatar">{story.emoji}</span> {story.author}</p><p className="story-meta">{classData.name} · {new Date(story.createdAt).toLocaleString()}</p></div><div className="story-card-actions"><span className="story-menu">⋯</span><button className="story-delete-btn" type="button" onClick={() => handleDeleteStory(story.id)}>Delete</button></div></header><span className="story-status">{story.status}</span>{story.text && <p className="story-text">{story.text}</p>}{story.image && <img className="story-feed-image" src={story.image} alt="Story post" />}<footer className="story-reactions"><button className={`story-like-btn ${story.liked ? 'is-liked' : ''}`} type="button" onClick={() => handleToggleStoryLike(story.id)}>{story.liked ? '♥' : '♡'} {story.likes || 0} likes</button><button className="story-comments-toggle" type="button" onClick={() => setOpenCommentsByStory((prev) => ({ ...prev, [story.id]: !prev[story.id] }))}>💬 {(story.comments || []).length} comments</button></footer>{openCommentsByStory[story.id] && <section className="story-comments"><div className="story-comments-list">{(story.comments || []).map((comment) => <article key={comment.id} className="story-comment"><p><span>{comment.avatar}</span> <strong>{comment.username}</strong> · {new Date(comment.createdAt).toLocaleString()}</p><p>{comment.text}</p></article>)}{(story.comments || []).length === 0 && <p className="story-comment-empty">No comments yet.</p>}</div><div className="story-comment-form"><input value={commentInputs[story.id] || ''} onChange={(event) => setCommentInputs((prev) => ({ ...prev, [story.id]: event.target.value }))} placeholder="Write a comment..." /><button className="btn btn-outline" type="button" onClick={() => handleAddStoryComment(story.id)}>Post</button></div></section>}</article>)}{(classData.stories || []).length === 0 && <article className="classroom-content story-card"><p>No stories yet. Be the first to post.</p></article>}</div>
           </section>
         ) : (
           <article className="classroom-content"><h2>{activeTab} coming next</h2></article>

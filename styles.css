@@ -1007,4 +1007,13 @@ h2 { color: #2B2142; }
 .story-reactions{display:flex;gap:1rem;color:#7B6D9B;font-size:.85rem;border-top:1px solid rgba(196,181,253,.35);padding-top:.55rem}
 .story-like-btn{border:none;background:transparent;color:#7B6D9B;padding:0;cursor:pointer;font:inherit}
 .story-like-btn.is-liked{color:#a44f74;font-weight:600}
+.story-comments-toggle{border:none;background:transparent;color:#7B6D9B;padding:0;cursor:pointer;font:inherit}
+.story-comments{margin-top:.7rem;padding-top:.6rem;border-top:1px solid rgba(196,181,253,.3);display:grid;gap:.55rem}
+.story-comments-list{display:grid;gap:.45rem}
+.story-comment{background:rgba(255,249,251,.72);border:1px solid rgba(196,181,253,.35);border-radius:12px;padding:.5rem .6rem}
+.story-comment p{margin:.12rem 0;color:#7B6D9B}
+.story-comment p strong{color:#2B2142}
+.story-comment-empty{margin:0;color:#7B6D9B;font-size:.88rem}
+.story-comment-form{display:flex;gap:.45rem}
+.story-comment-form input{flex:1;border:1px solid rgba(196,181,253,.45);background:rgba(255,255,255,.8);border-radius:10px;padding:.5rem .6rem;color:#2B2142}
 @media (max-width:900px){.classroom-overview-grid{grid-template-columns:1fr}.classroom-student-grid{grid-template-columns:1fr}}
