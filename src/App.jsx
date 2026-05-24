@@ -361,6 +361,7 @@ function ClassroomPage({ data, onBack }) {
   const [showNotifications, setShowNotifications] = useState(false)
   const [eventDraft, setEventDraft] = useState({ title: '', date: '', time: '', description: '', emoji: '📚' })
   const [editingEventId, setEditingEventId] = useState(null)
+  const [resourceDraft, setResourceDraft] = useState({ title: '', type: 'PDF', description: '', link: '' })
   const tabs = ['Classroom', 'Stories', 'Chat', 'Calendar', 'Resources', 'Activities', 'AI Tutor']
   const studentAvatars = ['🙂', '🌟', '📚', '🧠', '🚀', '🎯']
   const storyStatuses = ['Working', 'Thinking', 'Question', 'Proud', 'Need Help', 'Idea']
@@ -518,6 +519,24 @@ function ClassroomPage({ data, onBack }) {
       setEventDraft({ title: '', date: '', time: '', description: '', emoji: '📚' })
     }
   }
+  const handleSaveResource = (event) => {
+    event.preventDefault()
+    if (!resourceDraft.title.trim() || !resourceDraft.link.trim()) return
+    const payload = {
+      id: Date.now(),
+      title: resourceDraft.title.trim(),
+      type: resourceDraft.type,
+      description: resourceDraft.description.trim(),
+      link: resourceDraft.link.trim(),
+    }
+    const nextResources = [payload, ...(classData.resources || [])]
+    notify({ ...classData, resources: nextResources }, `New resource added: ${payload.title}.`)
+    setResourceDraft({ title: '', type: 'PDF', description: '', link: '' })
+  }
+  const handleDeleteResource = (resourceId) => {
+    const nextResources = (classData.resources || []).filter((item) => item.id !== resourceId)
+    persistClass({ ...classData, resources: nextResources })
+  }
 
   const handleStoryImageChange = (event) => {
     const file = event.target.files?.[0]
@@ -594,6 +613,11 @@ function ClassroomPage({ data, onBack }) {
           <section className="classroom-overview-grid">
             <article className="classroom-content classroom-students"><h2>Upcoming Events</h2><div className="story-list">{sortedEvents.map((eventItem) => <article className="classroom-student-card" key={eventItem.id}><p><strong>{eventItem.emoji || '📚'} {eventItem.title}</strong></p><p>{new Date(`${eventItem.date}T${eventItem.time}`).toLocaleString()}</p><p>{eventItem.description || 'No description yet.'}</p><span>Teacher Event</span>{data.from === 'teacher' && <div className="teacher-class-actions"><button className="btn btn-outline" type="button" onClick={() => handleEditEvent(eventItem)}>Edit</button><button className="btn btn-outline" type="button" onClick={() => handleDeleteEvent(eventItem.id)}>Delete</button></div>}</article>)}{sortedEvents.length === 0 && <p>No events yet.</p>}</div></article>
             {data.from === 'teacher' && <article className="classroom-content"><h2>{editingEventId ? 'Edit Event' : 'Create Event'}</h2><form className="classroom-add-form" onSubmit={handleSaveEvent}><input value={eventDraft.title} onChange={(e) => setEventDraft((prev) => ({ ...prev, title: e.target.value }))} placeholder="Event title" /><input type="date" value={eventDraft.date} onChange={(e) => setEventDraft((prev) => ({ ...prev, date: e.target.value }))} /><input type="time" value={eventDraft.time} onChange={(e) => setEventDraft((prev) => ({ ...prev, time: e.target.value }))} /><textarea value={eventDraft.description} onChange={(e) => setEventDraft((prev) => ({ ...prev, description: e.target.value }))} placeholder="Short description" rows={3} /><select value={eventDraft.emoji} onChange={(e) => setEventDraft((prev) => ({ ...prev, emoji: e.target.value }))}><option>📚</option><option>🧪</option><option>📝</option><option>🎯</option><option>🌟</option><option>📣</option></select><button className="btn btn-role-continue" type="submit">{editingEventId ? 'Save Changes' : 'Save Event'}</button></form></article>}
+          </section>
+        ) : activeTab === 'Resources' ? (
+          <section className="classroom-overview-grid">
+            <article className="classroom-content classroom-students"><h2>Class Resources</h2><div className="story-list">{(classData.resources || []).map((resource) => <article className="classroom-student-card" key={resource.id}><span>{resource.type}</span><p><strong>{resource.title}</strong></p><p>{resource.description || 'No description yet.'}</p><a className="btn btn-outline" href={resource.link} target="_blank" rel="noreferrer">Open Resource</a>{data.from === 'teacher' && <div className="teacher-class-actions"><button className="btn btn-outline" type="button" onClick={() => handleDeleteResource(resource.id)}>Delete</button></div>}</article>)}{(classData.resources || []).length === 0 && <p>No resources yet.</p>}</div></article>
+            {data.from === 'teacher' && <article className="classroom-content"><h2>Add Resource</h2><form className="classroom-add-form" onSubmit={handleSaveResource}><input value={resourceDraft.title} onChange={(e) => setResourceDraft((prev) => ({ ...prev, title: e.target.value }))} placeholder="Resource title" /><select value={resourceDraft.type} onChange={(e) => setResourceDraft((prev) => ({ ...prev, type: e.target.value }))}><option>PDF</option><option>Video</option><option>Quiz</option><option>Worksheet</option><option>Link</option><option>Activity</option></select><textarea value={resourceDraft.description} onChange={(e) => setResourceDraft((prev) => ({ ...prev, description: e.target.value }))} placeholder="Short description" rows={3} /><input value={resourceDraft.link} onChange={(e) => setResourceDraft((prev) => ({ ...prev, link: e.target.value }))} placeholder="https://resource-link.com" /><button className="btn btn-role-continue" type="submit">Save Resource</button></form></article>}
           </section>
         ) : activeTab === 'Chat' ? (
           <section className="classroom-content classroom-chat"><div className="classroom-chat-messages">{(classData.chatMessages || []).map((message) => <article key={message.id} className={`classroom-chat-bubble ${message.sender === 'Teacher' ? 'is-teacher' : 'is-student'}`}><p><strong>{message.avatar} {message.sender}</strong> · {new Date(message.createdAt).toLocaleTimeString()}</p><p>{message.text}</p></article>)}{(classData.chatMessages || []).length === 0 && <p>No chat messages yet.</p>}</div><form className="classroom-chat-form" onSubmit={handleSendChat}><input value={chatMessage} onChange={(event) => setChatMessage(event.target.value)} placeholder="Write a message..." /><button className="btn btn-role-continue" type="submit">Send</button></form></section>
