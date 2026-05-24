@@ -987,7 +987,11 @@ h2 { color: #2B2142; }
 .story-composer-head{display:flex;align-items:center;gap:.6rem;color:#7B6D9B}
 .story-avatar{width:2rem;height:2rem;display:inline-flex;align-items:center;justify-content:center;background:rgba(196,181,253,.28);border-radius:999px}
 .story-camera{margin-left:auto;opacity:.75}
+.story-image-input{display:none}
 .story-composer-actions{display:flex;gap:.55rem;flex-wrap:wrap}
+.story-preview-wrap{display:grid;gap:.45rem}
+.story-preview-image,.story-feed-image{width:100%;max-height:340px;object-fit:cover;border-radius:14px;border:1px solid rgba(196,181,253,.45)}
+.story-image-error{margin:0;color:#a44f74;font-size:.85rem}
 .story-list{display:grid;gap:1rem}
 .story-card{padding:1rem 1.1rem}
 .story-card-head{display:flex;justify-content:space-between;gap:.6rem;align-items:flex-start}

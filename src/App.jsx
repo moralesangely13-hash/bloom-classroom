@@ -351,6 +351,8 @@ function ClassroomPage({ data, onBack }) {
   const [storyText, setStoryText] = useState('')
   const [storyStatus, setStoryStatus] = useState('Working')
   const [storyEmoji, setStoryEmoji] = useState('🌸')
+  const [storyImage, setStoryImage] = useState('')
+  const [storyImageError, setStoryImageError] = useState('')
   const tabs = ['Classroom', 'Stories', 'Chat', 'Calendar', 'Resources', 'Activities', 'AI Tutor']
   const studentAvatars = ['🙂', '🌟', '📚', '🧠', '🚀', '🎯']
   const storyStatuses = ['Working', 'Thinking', 'Question', 'Proud', 'Need Help', 'Idea']
@@ -403,7 +405,7 @@ function ClassroomPage({ data, onBack }) {
 
   const handlePostStory = (event) => {
     event.preventDefault()
-    if (!storyText.trim()) return
+    if (!storyText.trim() && !storyImage) return
     const nextStories = [
       {
         id: Date.now(),
@@ -411,12 +413,31 @@ function ClassroomPage({ data, onBack }) {
         status: storyStatus,
         emoji: storyEmoji,
         text: storyText.trim(),
+        image: storyImage || '',
         createdAt: new Date().toISOString(),
       },
       ...(classData.stories || []),
     ]
     persistClass({ ...classData, stories: nextStories })
     setStoryText('')
+    setStoryImage('')
+    setStoryImageError('')
+  }
+
+  const handleStoryImageChange = (event) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+    if (!file.type.startsWith('image/')) {
+      setStoryImage('')
+      setStoryImageError('Please choose an image file.')
+      return
+    }
+    const reader = new FileReader()
+    reader.onload = () => {
+      setStoryImage(String(reader.result || ''))
+      setStoryImageError('')
+    }
+    reader.readAsDataURL(file)
   }
 
   const totalStudents = (classData.students || []).length
@@ -463,12 +484,14 @@ function ClassroomPage({ data, onBack }) {
             <article className="classroom-content story-composer">
               <h2>Create Story</h2>
               <form className="classroom-add-form" onSubmit={handlePostStory}>
-                <div className="story-composer-head"><span className="story-avatar">{data.from === 'teacher' ? '👩‍🏫' : '🧑‍🎓'}</span><p>Share something with your class…</p><span className="story-camera">📷</span></div>
+                <div className="story-composer-head"><span className="story-avatar">{data.from === 'teacher' ? '👩‍🏫' : '🧑‍🎓'}</span><p>Share something with your class…</p><label className="story-camera" htmlFor="story-image-input" title="Add image">📷</label><input id="story-image-input" className="story-image-input" type="file" accept="image/*" onChange={handleStoryImageChange} /></div>
                 <textarea value={storyText} onChange={(event) => setStoryText(event.target.value)} placeholder="Share something with your class…" rows={4} />
+                {storyImageError && <p className="story-image-error">{storyImageError}</p>}
+                {storyImage && <div className="story-preview-wrap"><img className="story-preview-image" src={storyImage} alt="Story preview" /><button className="btn btn-outline" type="button" onClick={() => setStoryImage('')}>Remove image</button></div>}
                 <div className="story-composer-actions"><select value={storyStatus} onChange={(event) => setStoryStatus(event.target.value)}>{storyStatuses.map((status) => <option key={status} value={status}>{status}</option>)}</select><select value={storyEmoji} onChange={(event) => setStoryEmoji(event.target.value)}>{storyEmojis.map((emoji) => <option key={emoji} value={emoji}>{emoji}</option>)}</select><button className="btn btn-role-continue" type="submit">Post</button></div>
               </form>
             </article>
-            <div className="story-list">{(classData.stories || []).map((story) => <article className="classroom-content story-card" key={story.id}><header className="story-card-head"><div><p className="story-author"><span className="story-avatar">{story.emoji}</span> {story.author}</p><p className="story-meta">{classData.name} · {new Date(story.createdAt).toLocaleString()}</p></div><span className="story-menu">⋯</span></header><span className="story-status">{story.status}</span><p className="story-text">{story.text}</p><footer className="story-reactions"><span>♡ 0 likes</span><span>💬 0 comments</span></footer></article>)}{(classData.stories || []).length === 0 && <article className="classroom-content story-card"><p>No stories yet. Be the first to post.</p></article>}</div>
+            <div className="story-list">{(classData.stories || []).map((story) => <article className="classroom-content story-card" key={story.id}><header className="story-card-head"><div><p className="story-author"><span className="story-avatar">{story.emoji}</span> {story.author}</p><p className="story-meta">{classData.name} · {new Date(story.createdAt).toLocaleString()}</p></div><span className="story-menu">⋯</span></header><span className="story-status">{story.status}</span>{story.text && <p className="story-text">{story.text}</p>}{story.image && <img className="story-feed-image" src={story.image} alt="Story post" />}<footer className="story-reactions"><span>♡ 0 likes</span><span>💬 0 comments</span></footer></article>)}{(classData.stories || []).length === 0 && <article className="classroom-content story-card"><p>No stories yet. Be the first to post.</p></article>}</div>
           </section>
         ) : (
           <article className="classroom-content"><h2>{activeTab} coming next</h2></article>
