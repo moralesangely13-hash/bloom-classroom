@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from 'react'
 
+const BLOOM_CLASSES_KEY = 'bloomClasses'
+const BLOOM_STUDENT_JOINED_CODES_KEY = 'bloomStudentJoinedClassCodes'
+
 function RoleSelection({ selectedRole, setSelectedRole, onContinue, onBack }) {
   return (
     <main className="role-selection-screen">
@@ -61,14 +64,14 @@ function TeacherPlaceholder({ onBack }) {
   const [classes, setClasses] = useState([])
 
   useEffect(() => {
-    const storedClasses = localStorage.getItem('bloom_teacher_classes')
+    const storedClasses = localStorage.getItem(BLOOM_CLASSES_KEY)
     if (storedClasses) {
       setClasses(JSON.parse(storedClasses))
     }
   }, [])
 
   useEffect(() => {
-    localStorage.setItem('bloom_teacher_classes', JSON.stringify(classes))
+    localStorage.setItem(BLOOM_CLASSES_KEY, JSON.stringify(classes))
   }, [classes])
 
   const generateCode = () => `BLOOM-${Math.floor(1000 + Math.random() * 9000)}`
@@ -79,10 +82,11 @@ function TeacherPlaceholder({ onBack }) {
 
     const newClass = {
       id: Date.now(),
-      className: className.trim(),
+      name: className.trim(),
       subject: subject.trim(),
       code: generateCode(),
-      students: 0,
+      createdAt: new Date().toISOString(),
+      students: [],
     }
 
     setClasses((prev) => [newClass, ...prev])
@@ -101,7 +105,7 @@ function TeacherPlaceholder({ onBack }) {
 
     setClasses((prev) => prev.map((classItem) => (
       classItem.id === id
-        ? { ...classItem, className: nextName.trim(), subject: nextSubject.trim() }
+        ? { ...classItem, name: nextName.trim(), subject: nextSubject.trim() }
         : classItem
     )))
   }
@@ -114,7 +118,7 @@ function TeacherPlaceholder({ onBack }) {
     }
   }
 
-  const totalStudents = classes.reduce((sum, classItem) => sum + classItem.students, 0)
+  const totalStudents = classes.reduce((sum, classItem) => sum + (classItem.students?.length || 0), 0)
 
   return (
     <main className="teacher-dashboard-screen">
@@ -145,7 +149,7 @@ function TeacherPlaceholder({ onBack }) {
             <h2>Recent Activity</h2>
             <ul className="teacher-list">
               {classes.slice(0, 3).map((classItem) => (
-                <li key={classItem.id}>Created {classItem.className} ({classItem.subject})</li>
+                <li key={classItem.id}>Created {classItem.name} ({classItem.subject})</li>
               ))}
               {classes.length === 0 && <li>No recent activity yet.</li>}
             </ul>
@@ -173,10 +177,10 @@ function TeacherPlaceholder({ onBack }) {
           <div className="teacher-classes-grid">
             {classes.map((classItem) => (
               <article className="teacher-class-card" key={classItem.id}>
-                <h3>{classItem.className}</h3>
+                <h3>{classItem.name}</h3>
                 <p>{classItem.subject}</p>
                 <p><strong>Code:</strong> {classItem.code}</p>
-                <p><strong>Students:</strong> {classItem.students}</p>
+                <p><strong>Students:</strong> {classItem.students?.length || 0}</p>
                 <div className="teacher-class-actions">
                   <button className="btn btn-outline" type="button">Open</button>
                   <button className="btn btn-outline" type="button" onClick={() => handleEditClass(classItem.id)}>Edit</button>
@@ -199,14 +203,19 @@ function StudentPlaceholder({ onBack }) {
   const [joinError, setJoinError] = useState('')
 
   useEffect(() => {
-    const storedJoined = localStorage.getItem('bloom_student_joined_classes')
-    if (storedJoined) {
-      setJoinedClasses(JSON.parse(storedJoined))
-    }
+    const teacherClasses = JSON.parse(localStorage.getItem(BLOOM_CLASSES_KEY) || '[]')
+    const storedJoinedCodes = JSON.parse(localStorage.getItem(BLOOM_STUDENT_JOINED_CODES_KEY) || '[]')
+
+    const hydrated = storedJoinedCodes
+      .map((code) => teacherClasses.find((classItem) => classItem.code === code))
+      .filter(Boolean)
+      .map((classItem) => ({ ...classItem, progress: '0%', points: 0 }))
+
+    setJoinedClasses(hydrated)
   }, [])
 
   useEffect(() => {
-    localStorage.setItem('bloom_student_joined_classes', JSON.stringify(joinedClasses))
+    localStorage.setItem(BLOOM_STUDENT_JOINED_CODES_KEY, JSON.stringify(joinedClasses.map((classItem) => classItem.code)))
   }, [joinedClasses])
 
   const handleJoinClass = (event) => {
@@ -214,7 +223,7 @@ function StudentPlaceholder({ onBack }) {
     const normalizedCode = classCode.trim().toUpperCase()
     if (!normalizedCode) return
 
-    const teacherClasses = JSON.parse(localStorage.getItem('bloom_teacher_classes') || '[]')
+    const teacherClasses = JSON.parse(localStorage.getItem(BLOOM_CLASSES_KEY) || '[]')
     const matchedClass = teacherClasses.find((classItem) => classItem.code === normalizedCode)
 
     if (!matchedClass) {
@@ -234,7 +243,7 @@ function StudentPlaceholder({ onBack }) {
       points: 0,
     }, ...prev])
     setClassCode('')
-    setJoinError('')
+    setJoinError('Success! You joined the class.')
   }
 
   return (
@@ -296,7 +305,7 @@ function StudentPlaceholder({ onBack }) {
             <h2>Recent Activity</h2>
             <div className="student-activity-grid">
               {joinedClasses.slice(0, 3).map((classItem) => (
-                <div key={classItem.id} className="student-activity-item">Joined {classItem.className}</div>
+                <div key={classItem.id} className="student-activity-item">Joined {classItem.name}</div>
               ))}
               {joinedClasses.length === 0 && <div className="student-activity-item">No activity yet.</div>}
             </div>
@@ -308,7 +317,7 @@ function StudentPlaceholder({ onBack }) {
           <div className="student-classes-grid">
             {joinedClasses.map((classItem) => (
               <article className="student-class-card" key={classItem.id}>
-                <h3>{classItem.className}</h3>
+                <h3>{classItem.name}</h3>
                 <p>{classItem.subject}</p>
                 <p><strong>Code:</strong> {classItem.code}</p>
                 <p><strong>Progress:</strong> {classItem.progress}</p>
