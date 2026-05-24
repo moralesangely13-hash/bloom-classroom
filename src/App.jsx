@@ -2,34 +2,55 @@ import React, { useState } from 'react'
 
 function RoleSelection({ selectedRole, setSelectedRole, onContinue, onBack }) {
   return (
-    <main className="section container" style={{ minHeight: '100vh', display: 'grid', placeItems: 'center' }}>
-      <div style={{ width: '100%', maxWidth: '520px', textAlign: 'center' }}>
-        <h1>Choose your role</h1>
-        <div style={{ display: 'grid', gap: '12px', marginTop: '20px' }}>
+    <main className="role-selection-screen">
+      <div className="role-bg-shape role-bg-shape-1" aria-hidden="true" />
+      <div className="role-bg-shape role-bg-shape-2" aria-hidden="true" />
+      <div className="role-bg-shape role-bg-shape-3" aria-hidden="true" />
+
+      <section className="role-shell container">
+        <div className="role-logo" aria-hidden="true">
+          <span className="logo-dot dot-1" />
+          <span className="logo-dot dot-2" />
+          <span className="logo-dot dot-3" />
+          <span className="logo-dot dot-4" />
+        </div>
+        <p className="role-brand">Bloom Classroom</p>
+        <h1 className="role-title">Welcome to your learning space</h1>
+        <p className="role-subtitle">Choose your role to personalize what happens next.</p>
+
+        <div className="role-grid" role="radiogroup" aria-label="Choose your role">
           <button
-            className={`btn ${selectedRole === 'teacher' ? 'btn-primary' : 'btn-outline'}`}
+            className={`role-card ${selectedRole === 'teacher' ? 'is-active' : ''}`}
             type="button"
             onClick={() => setSelectedRole('teacher')}
+            aria-pressed={selectedRole === 'teacher'}
           >
-            Teacher
+            <span className="role-icon" aria-hidden="true">🧑‍🏫</span>
+            <span className="role-card-title">Teacher</span>
+            <span className="role-card-copy">Manage classrooms, activities, students, and engagement.</span>
           </button>
+
           <button
-            className={`btn ${selectedRole === 'student' ? 'btn-primary' : 'btn-outline'}`}
+            className={`role-card ${selectedRole === 'student' ? 'is-active' : ''}`}
             type="button"
             onClick={() => setSelectedRole('student')}
+            aria-pressed={selectedRole === 'student'}
           >
-            Student
+            <span className="role-icon" aria-hidden="true">🧑‍🎓</span>
+            <span className="role-card-title">Student</span>
+            <span className="role-card-copy">Join classes, track progress, and learn with AI support.</span>
           </button>
         </div>
-        <div style={{ display: 'grid', gap: '12px', marginTop: '20px' }}>
-          <button className="btn btn-primary" type="button" onClick={onContinue}>
+
+        <div className="role-actions">
+          <button className="btn btn-role-continue" type="button" onClick={onContinue} disabled={!selectedRole}>
             Continue
           </button>
-          <button className="btn btn-ghost" type="button" onClick={onBack}>
+          <button className="btn btn-role-back" type="button" onClick={onBack}>
             Back to Landing
           </button>
         </div>
-      </div>
+      </section>
     </main>
   )
 }
@@ -178,7 +199,7 @@ function Landing({ onOpenRoleSelection }) {
 
 function App() {
   const [screen, setScreen] = useState('landing')
-  const [selectedRole, setSelectedRole] = useState('teacher')
+  const [selectedRole, setSelectedRole] = useState('')
 
   if (screen === 'role-selection') {
     return (
