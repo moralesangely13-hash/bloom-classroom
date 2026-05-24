@@ -434,3 +434,42 @@ blockquote cite {
     grid-template-columns: 1fr;
   }
 }
+
+.role-helper {
+  margin: 0.55rem 0 0;
+  text-align: center;
+  color: #7B6D9B;
+  font-size: 0.92rem;
+}
+
+.role-card:focus-visible,
+.btn-role-continue:focus-visible,
+.btn-role-back:focus-visible {
+  outline: 3px solid rgba(167, 139, 250, 0.55);
+  outline-offset: 2px;
+}
+
+.role-card-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 0.85rem;
+}
+
+.role-chip {
+  display: inline-block;
+  padding: 0.24rem 0.62rem;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #5f4ba2;
+  background: rgba(196, 181, 253, 0.36);
+  border: 1px solid rgba(167, 139, 250, 0.35);
+}
+
+.role-card.is-active .role-chip {
+  background: rgba(167, 139, 250, 0.28);
+  border-color: rgba(167, 139, 250, 0.7);
+}
