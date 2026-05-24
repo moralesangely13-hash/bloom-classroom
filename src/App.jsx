@@ -87,6 +87,7 @@ function TeacherPlaceholder({ onBack }) {
       code: generateCode(),
       createdAt: new Date().toISOString(),
       students: [],
+      notifications: [{ id: Date.now() + 1, text: `Class ${className.trim()} was created.`, read: false, createdAt: new Date().toISOString() }],
     }
 
     setClasses((prev) => [newClass, ...prev])
@@ -356,6 +357,8 @@ function ClassroomPage({ data, onBack }) {
   const [storyImageError, setStoryImageError] = useState('')
   const [openCommentsByStory, setOpenCommentsByStory] = useState({})
   const [commentInputs, setCommentInputs] = useState({})
+  const [chatMessage, setChatMessage] = useState('')
+  const [showNotifications, setShowNotifications] = useState(false)
   const tabs = ['Classroom', 'Stories', 'Chat', 'Calendar', 'Resources', 'Activities', 'AI Tutor']
   const studentAvatars = ['🙂', '🌟', '📚', '🧠', '🚀', '🎯']
   const storyStatuses = ['Working', 'Thinking', 'Question', 'Proud', 'Need Help', 'Idea']
@@ -379,6 +382,10 @@ function ClassroomPage({ data, onBack }) {
     localStorage.setItem(BLOOM_CLASSES_KEY, JSON.stringify(updated))
     setClassData(nextClass)
   }
+  const notify = (nextClass, text) => {
+    const notifications = [{ id: Date.now(), text, read: false, createdAt: new Date().toISOString() }, ...(nextClass.notifications || [])]
+    persistClass({ ...nextClass, notifications })
+  }
 
   const handleAddStudent = (event) => {
     event.preventDefault()
@@ -392,7 +399,7 @@ function ClassroomPage({ data, onBack }) {
         avatar: studentAvatars[Math.floor(Math.random() * studentAvatars.length)],
       },
     ]
-    persistClass({ ...classData, students: nextStudents })
+    notify({ ...classData, students: nextStudents }, `${studentName.trim()} joined the class list.`)
     setStudentName('')
   }
 
@@ -425,7 +432,7 @@ function ClassroomPage({ data, onBack }) {
       },
       ...(classData.stories || []),
     ]
-    persistClass({ ...classData, stories: nextStories })
+    notify({ ...classData, stories: nextStories }, `${data.from === 'teacher' ? 'Teacher' : 'Student'} posted a story.`)
     setStoryText('')
     setStoryImage('')
     setStoryImageError('')
@@ -457,8 +464,23 @@ function ClassroomPage({ data, onBack }) {
       ]
       return { ...story, comments }
     })
-    persistClass({ ...classData, stories: nextStories })
+    notify({ ...classData, stories: nextStories }, `${data.from === 'teacher' ? 'Teacher' : 'Student'} added a comment.`)
     setCommentInputs((prev) => ({ ...prev, [storyId]: '' }))
+  }
+  const handleSendChat = (event) => {
+    event.preventDefault()
+    if (!chatMessage.trim()) return
+    const nextMessages = [...(classData.chatMessages || []), { id: Date.now(), avatar: data.from === 'teacher' ? '👩‍🏫' : '🧑‍🎓', sender: data.from === 'teacher' ? 'Teacher' : 'Student', text: chatMessage.trim(), createdAt: new Date().toISOString() }]
+    notify({ ...classData, chatMessages: nextMessages }, `${data.from === 'teacher' ? 'Teacher' : 'Student'} sent a chat message.`)
+    setChatMessage('')
+  }
+  const unreadCount = (classData.notifications || []).filter((item) => !item.read).length
+  const handleToggleNotifications = () => {
+    const nextOpen = !showNotifications
+    setShowNotifications(nextOpen)
+    if (nextOpen && unreadCount > 0) {
+      persistClass({ ...classData, notifications: (classData.notifications || []).map((item) => ({ ...item, read: true })) })
+    }
   }
 
   const handleStoryImageChange = (event) => {
@@ -502,9 +524,10 @@ function ClassroomPage({ data, onBack }) {
         <h1 className="classroom-title">{classData.name}</h1>
         <p className="classroom-subject">{classData.subject}</p>
         <p className="classroom-code">{classData.code}</p>
-        <nav className="classroom-tabs" aria-label="Classroom tabs">
+        <div className="classroom-top-row"><nav className="classroom-tabs" aria-label="Classroom tabs">
           {tabs.map((tab) => <button key={tab} type="button" className={`classroom-tab ${activeTab === tab ? 'is-active' : ''}`} onClick={() => setActiveTab(tab)}>{tab}</button>)}
-        </nav>
+        </nav><button className="story-comments-toggle classroom-notify-btn" type="button" onClick={handleToggleNotifications}>🔔 {unreadCount > 0 ? <span className="classroom-notify-badge">{unreadCount}</span> : '0'}</button></div>
+        {showNotifications && <article className="classroom-content classroom-notify-panel"><h3>Notifications</h3>{(classData.notifications || []).slice(0, 8).map((item) => <p key={item.id}>{item.read ? '✓' : '•'} {item.text} · {new Date(item.createdAt).toLocaleString()}</p>)}{(classData.notifications || []).length === 0 && <p>No notifications yet.</p>}</article>}
         {activeTab === 'Classroom' ? (
           <section className="classroom-overview-grid">
             <article className="classroom-content"><h2>Classroom Summary</h2><p>Total students: {totalStudents}</p><p>Total points: {totalPoints}</p><p>Attendance: 0%</p><p>Groups: 0</p></article>
@@ -530,6 +553,8 @@ function ClassroomPage({ data, onBack }) {
             </article>
             <div className="story-list">{(classData.stories || []).map((story) => <article className="classroom-content story-card" key={story.id}><header className="story-card-head"><div><p className="story-author"><span className="story-avatar">{story.emoji}</span> {story.author}</p><p className="story-meta">{classData.name} · {new Date(story.createdAt).toLocaleString()}</p></div><div className="story-card-actions"><span className="story-menu">⋯</span><button className="story-delete-btn" type="button" onClick={() => handleDeleteStory(story.id)}>Delete</button></div></header><span className="story-status">{story.status}</span>{story.text && <p className="story-text">{story.text}</p>}{story.image && <img className="story-feed-image" src={story.image} alt="Story post" />}<footer className="story-reactions"><button className={`story-like-btn ${story.liked ? 'is-liked' : ''}`} type="button" onClick={() => handleToggleStoryLike(story.id)}>{story.liked ? '♥' : '♡'} {story.likes || 0} likes</button><button className="story-comments-toggle" type="button" onClick={() => setOpenCommentsByStory((prev) => ({ ...prev, [story.id]: !prev[story.id] }))}>💬 {(story.comments || []).length} comments</button></footer>{openCommentsByStory[story.id] && <section className="story-comments"><div className="story-comments-list">{(story.comments || []).map((comment) => <article key={comment.id} className="story-comment"><p><span>{comment.avatar}</span> <strong>{comment.username}</strong> · {new Date(comment.createdAt).toLocaleString()}</p><p>{comment.text}</p></article>)}{(story.comments || []).length === 0 && <p className="story-comment-empty">No comments yet.</p>}</div><div className="story-comment-form"><input value={commentInputs[story.id] || ''} onChange={(event) => setCommentInputs((prev) => ({ ...prev, [story.id]: event.target.value }))} placeholder="Write a comment..." /><button className="btn btn-outline" type="button" onClick={() => handleAddStoryComment(story.id)}>Post</button></div></section>}</article>)}{(classData.stories || []).length === 0 && <article className="classroom-content story-card"><p>No stories yet. Be the first to post.</p></article>}</div>
           </section>
+        ) : activeTab === 'Chat' ? (
+          <section className="classroom-content classroom-chat"><div className="classroom-chat-messages">{(classData.chatMessages || []).map((message) => <article key={message.id} className={`classroom-chat-bubble ${message.sender === 'Teacher' ? 'is-teacher' : 'is-student'}`}><p><strong>{message.avatar} {message.sender}</strong> · {new Date(message.createdAt).toLocaleTimeString()}</p><p>{message.text}</p></article>)}{(classData.chatMessages || []).length === 0 && <p>No chat messages yet.</p>}</div><form className="classroom-chat-form" onSubmit={handleSendChat}><input value={chatMessage} onChange={(event) => setChatMessage(event.target.value)} placeholder="Write a message..." /><button className="btn btn-role-continue" type="submit">Send</button></form></section>
         ) : (
           <article className="classroom-content"><h2>{activeTab} coming next</h2></article>
         )}
