@@ -997,9 +997,11 @@ h2 { color: #2B2142; }
 .story-list{display:grid;gap:1rem}
 .story-card{padding:1rem 1.1rem}
 .story-card-head{display:flex;justify-content:space-between;gap:.6rem;align-items:flex-start}
+.story-card-actions{display:flex;align-items:center;gap:.45rem}
 .story-author{margin:0;font-weight:700;color:#2B2142;display:flex;align-items:center;gap:.45rem}
 .story-meta{margin:.2rem 0 0;color:#7B6D9B;font-size:.82rem}
 .story-menu{font-size:1.2rem;color:#7B6D9B}
+.story-delete-btn{border:1px solid rgba(196,181,253,.45);background:rgba(255,255,255,.78);color:#7B6D9B;border-radius:999px;padding:.2rem .5rem;font-size:.74rem;cursor:pointer}
 .story-status{display:inline-block;margin:.55rem 0;background:rgba(249,213,229,.65);border:1px solid rgba(196,181,253,.45);border-radius:999px;padding:.22rem .6rem;color:#5f4ba2;font-size:.78rem}
 .story-text{margin:.15rem 0 .8rem;font-size:1rem;line-height:1.55;color:#2B2142}
 .story-reactions{display:flex;gap:1rem;color:#7B6D9B;font-size:.85rem;border-top:1px solid rgba(196,181,253,.35);padding-top:.55rem}

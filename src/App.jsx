@@ -424,6 +424,11 @@ function ClassroomPage({ data, onBack }) {
     setStoryImageError('')
   }
 
+  const handleDeleteStory = (storyId) => {
+    const nextStories = (classData.stories || []).filter((story) => story.id !== storyId)
+    persistClass({ ...classData, stories: nextStories })
+  }
+
   const handleStoryImageChange = (event) => {
     const file = event.target.files?.[0]
     if (!file) return
@@ -491,7 +496,7 @@ function ClassroomPage({ data, onBack }) {
                 <div className="story-composer-actions"><select value={storyStatus} onChange={(event) => setStoryStatus(event.target.value)}>{storyStatuses.map((status) => <option key={status} value={status}>{status}</option>)}</select><select value={storyEmoji} onChange={(event) => setStoryEmoji(event.target.value)}>{storyEmojis.map((emoji) => <option key={emoji} value={emoji}>{emoji}</option>)}</select><button className="btn btn-role-continue" type="submit">Post</button></div>
               </form>
             </article>
-            <div className="story-list">{(classData.stories || []).map((story) => <article className="classroom-content story-card" key={story.id}><header className="story-card-head"><div><p className="story-author"><span className="story-avatar">{story.emoji}</span> {story.author}</p><p className="story-meta">{classData.name} · {new Date(story.createdAt).toLocaleString()}</p></div><span className="story-menu">⋯</span></header><span className="story-status">{story.status}</span>{story.text && <p className="story-text">{story.text}</p>}{story.image && <img className="story-feed-image" src={story.image} alt="Story post" />}<footer className="story-reactions"><span>♡ 0 likes</span><span>💬 0 comments</span></footer></article>)}{(classData.stories || []).length === 0 && <article className="classroom-content story-card"><p>No stories yet. Be the first to post.</p></article>}</div>
+            <div className="story-list">{(classData.stories || []).map((story) => <article className="classroom-content story-card" key={story.id}><header className="story-card-head"><div><p className="story-author"><span className="story-avatar">{story.emoji}</span> {story.author}</p><p className="story-meta">{classData.name} · {new Date(story.createdAt).toLocaleString()}</p></div><div className="story-card-actions"><span className="story-menu">⋯</span><button className="story-delete-btn" type="button" onClick={() => handleDeleteStory(story.id)}>Delete</button></div></header><span className="story-status">{story.status}</span>{story.text && <p className="story-text">{story.text}</p>}{story.image && <img className="story-feed-image" src={story.image} alt="Story post" />}<footer className="story-reactions"><span>♡ 0 likes</span><span>💬 0 comments</span></footer></article>)}{(classData.stories || []).length === 0 && <article className="classroom-content story-card"><p>No stories yet. Be the first to post.</p></article>}</div>
           </section>
         ) : (
           <article className="classroom-content"><h2>{activeTab} coming next</h2></article>
