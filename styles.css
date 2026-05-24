@@ -990,7 +990,9 @@ h2 { color: #2B2142; }
 .story-image-input{display:none}
 .story-composer-actions{display:flex;gap:.55rem;flex-wrap:wrap}
 .story-preview-wrap{display:grid;gap:.45rem}
-.story-preview-image,.story-feed-image{width:100%;max-height:340px;object-fit:cover;border-radius:14px;border:1px solid rgba(196,181,253,.45)}
+.story-preview-image,.story-feed-image{width:100%;max-width:100%;object-fit:contain;object-position:center;border-radius:14px;border:1px solid rgba(196,181,253,.45);background:rgba(255,249,251,.65)}
+.story-preview-image{max-height:420px}
+.story-feed-image{max-height:520px}
 .story-image-error{margin:0;color:#a44f74;font-size:.85rem}
 .story-list{display:grid;gap:1rem}
 .story-card{padding:1rem 1.1rem}
