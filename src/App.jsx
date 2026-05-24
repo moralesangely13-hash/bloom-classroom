@@ -349,6 +349,15 @@ function ClassroomPage({ data, onBack }) {
   const [studentName, setStudentName] = useState('')
   const [classData, setClassData] = useState(data.classItem)
   const tabs = ['Classroom', 'History', 'Chat', 'Calendar', 'Resources', 'Activities', 'AI Tutor']
+  const studentAvatars = ['🙂', '🌟', '📚', '🧠', '🚀', '🎯']
+
+  useEffect(() => {
+    const classes = JSON.parse(localStorage.getItem(BLOOM_CLASSES_KEY) || '[]')
+    const latestClass = classes.find((item) => item.id === data.classItem.id)
+    if (latestClass) {
+      setClassData(latestClass)
+    }
+  }, [data.classItem.id])
 
   const persistClass = (nextClass) => {
     const classes = JSON.parse(localStorage.getItem(BLOOM_CLASSES_KEY) || '[]')
@@ -360,7 +369,15 @@ function ClassroomPage({ data, onBack }) {
   const handleAddStudent = (event) => {
     event.preventDefault()
     if (!studentName.trim()) return
-    const nextStudents = [...(classData.students || []), { id: Date.now(), name: studentName.trim(), points: 0 }]
+    const nextStudents = [
+      ...(classData.students || []),
+      {
+        id: Date.now(),
+        name: studentName.trim(),
+        points: 0,
+        avatar: studentAvatars[Math.floor(Math.random() * studentAvatars.length)],
+      },
+    ]
     persistClass({ ...classData, students: nextStudents })
     setStudentName('')
   }
@@ -393,7 +410,7 @@ function ClassroomPage({ data, onBack }) {
             ) : (
               <article className="classroom-content"><h2>Your Progress</h2><p>Own points: 0</p><p>Classroom summary available here.</p></article>
             )}
-            <article className="classroom-content classroom-students"><h2>{data.from === 'teacher' ? 'Students' : 'Classmates'}</h2><div className="classroom-student-grid">{(classData.students || []).map((student) => <div className="classroom-student-card" key={student.id}><p>🙂 {student.name}</p><p>Points: {student.points || 0}</p><span>Participation: Starter</span>{data.from === 'teacher' && <button className="btn btn-outline" type="button" onClick={() => handleDeleteStudent(student.id)}>Delete</button>}</div>)}{(classData.students || []).length === 0 && <p>No students yet.</p>}</div></article>
+            <article className="classroom-content classroom-students"><h2>{data.from === 'teacher' ? 'Students' : 'Classmates'}</h2><div className="classroom-student-grid">{(classData.students || []).map((student) => <div className="classroom-student-card" key={student.id}><p>{student.avatar || '🙂'} {student.name}</p><p>Points: {student.points || 0}</p><span>Participation: Starter</span>{data.from === 'teacher' && <button className="btn btn-outline" type="button" onClick={() => handleDeleteStudent(student.id)}>Delete</button>}</div>)}{(classData.students || []).length === 0 && <p>{data.from === 'teacher' ? 'No students yet.' : 'No classmates yet.'}</p>}</div></article>
           </section>
         ) : (
           <article className="classroom-content"><h2>{activeTab} coming next</h2></article>
