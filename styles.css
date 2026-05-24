@@ -1022,11 +1022,17 @@ h2 { color: #2B2142; }
 .story-comment-form{display:flex;gap:.45rem}
 .story-comment-form input{flex:1;border:1px solid rgba(196,181,253,.45);background:rgba(255,255,255,.8);border-radius:10px;padding:.5rem .6rem;color:#2B2142}
 .classroom-chat{display:grid;gap:.7rem}
-.classroom-chat-messages{max-height:340px;overflow:auto;display:grid;gap:.55rem}
-.classroom-chat-bubble{background:rgba(255,249,251,.78);border:1px solid rgba(196,181,253,.35);border-radius:12px;padding:.55rem .65rem}
+.classroom-chat-header h2{margin:0}.classroom-chat-header p{margin:.15rem 0 0;color:#7B6D9B}
+.classroom-chat-messages{max-height:380px;overflow:auto;display:grid;gap:.55rem;padding:.25rem}
+.classroom-chat-bubble{max-width:78%;background:rgba(255,249,251,.78);border:1px solid rgba(196,181,253,.35);border-radius:14px;padding:.55rem .65rem}
 .classroom-chat-bubble.is-teacher{background:rgba(196,239,232,.5)}
-.classroom-chat-bubble.is-student{background:rgba(221,235,255,.55)}
+.classroom-chat-bubble.is-student{background:rgba(221,235,255,.55);justify-self:end}
 .classroom-chat-bubble p{margin:.12rem 0;color:#7B6D9B}
-.classroom-chat-form{display:flex;gap:.5rem}
+.classroom-chat-empty{color:#7B6D9B;text-align:center;padding:.9rem 0}
+.classroom-chat-form{display:flex;gap:.5rem;position:sticky;bottom:0;background:rgba(255,249,251,.82);padding-top:.35rem}
 .classroom-chat-form input{flex:1;border:1px solid rgba(196,181,253,.45);background:rgba(255,255,255,.82);border-radius:10px;padding:.6rem .7rem}
+.resource-link-card{background:rgba(255,255,255,.7);border:1px solid rgba(196,181,253,.3);border-radius:10px;padding:.5rem}
+.resource-link-card p{margin:.1rem 0 .45rem;color:#7B6D9B}
+.resource-video{width:100%;height:220px;border:0;border-radius:12px;background:rgba(255,249,251,.65)}
+.resource-image{width:100%;max-height:260px;object-fit:contain;border-radius:12px;border:1px solid rgba(196,181,253,.35);background:rgba(255,249,251,.65)}
 @media (max-width:900px){.classroom-overview-grid{grid-template-columns:1fr}.classroom-student-grid{grid-template-columns:1fr}}
