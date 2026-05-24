@@ -348,8 +348,13 @@ function ClassroomPage({ data, onBack }) {
   const [activeTab, setActiveTab] = useState('Classroom')
   const [studentName, setStudentName] = useState('')
   const [classData, setClassData] = useState(data.classItem)
-  const tabs = ['Classroom', 'History', 'Chat', 'Calendar', 'Resources', 'Activities', 'AI Tutor']
+  const [storyText, setStoryText] = useState('')
+  const [storyStatus, setStoryStatus] = useState('Working')
+  const [storyEmoji, setStoryEmoji] = useState('🌸')
+  const tabs = ['Classroom', 'Stories', 'Chat', 'Calendar', 'Resources', 'Activities', 'AI Tutor']
   const studentAvatars = ['🙂', '🌟', '📚', '🧠', '🚀', '🎯']
+  const storyStatuses = ['Working', 'Thinking', 'Question', 'Proud', 'Need Help', 'Idea']
+  const storyEmojis = ['🌸', '✨', '💡', '📚', '🎯', '😊', '🤔', '🙋‍♀️']
 
   useEffect(() => {
     const classes = JSON.parse(localStorage.getItem(BLOOM_CLASSES_KEY) || '[]')
@@ -396,6 +401,24 @@ function ClassroomPage({ data, onBack }) {
     persistClass({ ...classData, students: nextStudents })
   }
 
+  const handlePostStory = (event) => {
+    event.preventDefault()
+    if (!storyText.trim()) return
+    const nextStories = [
+      {
+        id: Date.now(),
+        author: data.from === 'teacher' ? 'Teacher' : 'Student',
+        status: storyStatus,
+        emoji: storyEmoji,
+        text: storyText.trim(),
+        createdAt: new Date().toISOString(),
+      },
+      ...(classData.stories || []),
+    ]
+    persistClass({ ...classData, stories: nextStories })
+    setStoryText('')
+  }
+
   const totalStudents = (classData.students || []).length
   const totalPoints = (classData.students || []).reduce((sum, student) => sum + (student.points || 0), 0)
   const ownPoints = (classData.students || [])[0]?.points || 0
@@ -434,6 +457,11 @@ function ClassroomPage({ data, onBack }) {
               <article className="classroom-content"><h2>Your Progress</h2><p>Own points: {ownPoints}</p><p>Classroom summary available here.</p></article>
             )}
             <article className="classroom-content classroom-students"><h2>{data.from === 'teacher' ? 'Students' : 'Classmates'}</h2><div className="classroom-student-grid">{(classData.students || []).map((student) => <div className="classroom-student-card" key={student.id}><p>{student.avatar || '🙂'} {student.name}</p><p>Points: {student.points || 0}</p><span>Participation: Starter</span>{data.from === 'teacher' && <><select defaultValue={student.lastReason || pointReasons[0]} onChange={(event) => { const nextStudents = (classData.students || []).map((item) => (item.id === student.id ? { ...item, lastReason: event.target.value } : item)); persistClass({ ...classData, students: nextStudents }) }}>{pointReasons.map((reason) => <option key={reason} value={reason}>{reason}</option>)}</select><div className="classroom-point-actions"><button className="btn btn-outline" type="button" onClick={() => handleAdjustPoints(student.id, 1, student.lastReason || pointReasons[0])}>+1</button><button className="btn btn-outline" type="button" onClick={() => handleAdjustPoints(student.id, -1, student.lastReason || pointReasons[0])}>-1</button></div><button className="btn btn-outline" type="button" onClick={() => handleDeleteStudent(student.id)}>Delete</button></>}</div>)}{(classData.students || []).length === 0 && <p>{data.from === 'teacher' ? 'No students yet.' : 'No classmates yet.'}</p>}</div></article>
+          </section>
+        ) : activeTab === 'Stories' ? (
+          <section className="classroom-overview-grid">
+            <article className="classroom-content"><h2>Post a Story</h2><form className="classroom-add-form" onSubmit={handlePostStory}><textarea value={storyText} onChange={(event) => setStoryText(event.target.value)} placeholder="Share an update, idea, reflection, or question..." rows={3} /><select value={storyStatus} onChange={(event) => setStoryStatus(event.target.value)}>{storyStatuses.map((status) => <option key={status} value={status}>{status}</option>)}</select><select value={storyEmoji} onChange={(event) => setStoryEmoji(event.target.value)}>{storyEmojis.map((emoji) => <option key={emoji} value={emoji}>{emoji}</option>)}</select><button className="btn btn-role-continue" type="submit">Post</button></form></article>
+            <article className="classroom-content classroom-students"><h2>Class Stories</h2><div className="classroom-student-grid">{(classData.stories || []).map((story) => <div className="classroom-student-card" key={story.id}><p>{story.emoji} <strong>{story.author}</strong></p><span>{story.status}</span><p>{story.text}</p><p>{new Date(story.createdAt).toLocaleString()}</p></div>)}{(classData.stories || []).length === 0 && <p>No stories yet. Be the first to post.</p>}</div></article>
           </section>
         ) : (
           <article className="classroom-content"><h2>{activeTab} coming next</h2></article>
